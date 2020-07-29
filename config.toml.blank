@@ -1,0 +1,12 @@
+[location]
+longitude =
+latitude =
+timezone = ''
+
+[netatmo]
+client_id = ''
+client_secret = ''
+username = ''
+password = ''
+device_id = ''
+module_id = ''

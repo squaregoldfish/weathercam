@@ -1,0 +1,18 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+astral = "==2.2"
+"rpi.gpio" = "==0.7.0"
+gpiozero = "==1.5.1"
+netatmo = "==1.0.3"
+uptime = "==3.0.1"
+pytz = "*"
+toml = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.7"
