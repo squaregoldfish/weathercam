@@ -3,6 +3,12 @@ longitude =
 latitude =
 timezone = ''
 
+[screen]
+font = ''
+
+[images]
+dir = ''
+
 [netatmo]
 client_id = ''
 client_secret = ''
