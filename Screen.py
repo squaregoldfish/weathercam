@@ -46,10 +46,14 @@ class Screen(object):
     self._nas_icon = pygame.image.load('nas.png')
     self._temp_icon = pygame.image.load('temperature.png')
     self._rain_icon = pygame.image.load('rain.png')
+    self._clock_icon = pygame.image.load('clock.png')
     self._hourglass_icon = pygame.image.load('hourglass.png')
     self._reload_icon = pygame.image.load('reload.png')
     self._dawn_icon = pygame.image.load('sunrise.png')
     self._dusk_icon = pygame.image.load('sunset.png')
+
+    self._divider = pygame.Surface((320, 2))
+    pygame.draw.line(self._divider, (30, 102, 96), (0, 0), (320, 0), 2)
 
 
     self._imagesurface = self._font.render('Image', True, (255,0,0))
@@ -100,30 +104,36 @@ class Screen(object):
 
     # CPU temp & disk space
     self._screen.blit(self._cputemp_icon, (0, 66))
-    cputempsurface = self._font.render("{:5.1f}°C".format(self._info.cputemp()), True, self._PURPLE)
+    cputempsurface = self._font.render("{:6.1f}°C".format(self._info.cputemp()), True, self._PURPLE)
     self._screen.blit(cputempsurface, (33, 62))
 
-    self._screen.blit(self._microsd_icon, (0, 99))
-    localspacesurface = self._font.render("{:5.1f}Gb".format(self._info.localspace() / 1073741824), True, self._PURPLE)
-    self._screen.blit(localspacesurface, (33, 95))
+    self._screen.blit(self._microsd_icon, (188, 66))
+    localspacesurface = self._font.render("{:4.1f}Gb".format(self._info.localspace() / 1073741824), True, self._PURPLE)
+    self._screen.blit(localspacesurface, (221, 62))
 
-    self._screen.blit(self._nas_icon, (0, 132))
-    remotespacesurface = self._font.render("{:5.1f}Gb".format(self._info.remotespace() / 1073741824), True, self._PURPLE)
-    self._screen.blit(remotespacesurface, (33, 128))
+    # Divider
+    self._screen.blit(self._divider, (0, 100))
 
     # Weather
-    self._screen.blit(self._temp_icon, (165, 66))
-    tempsurface = self._font.render('{:5.1f}°C'.format(self._info.outdoortemp()), True, self._RED)
-    self._screen.blit(tempsurface, (204, 62))
+    self._screen.blit(self._temp_icon, (0, 108))
+    tempsurface = self._font.render('{:6.1f}°C'.format(self._info.outdoortemp()), True, self._RED)
+    self._screen.blit(tempsurface, (33, 104))
 
-    self._screen.blit(self._rain_icon, (165, 99))
-    rainsurface = self._font.render('{:5.1f}mm'.format(self._info.rain()), True, self._BLUE)
-    self._screen.blit(rainsurface, (204, 95))
+    self._screen.blit(self._rain_icon, (188, 108))
+    rainsurface = self._font.render('{:4.1f}mm'.format(self._info.rain()), True, self._BLUE)
+    self._screen.blit(rainsurface, (221, 104))
+
+    self._screen.blit(self._clock_icon, (0, 142))
+    weathertimesurface = self._font.render('{}'.format(self._format_time(self._info.outdoortemplastupdate())), True, self._GREY)
+    self._screen.blit(weathertimesurface, (33, 138))
 
     weatherupdateicon = self._reload_icon if self._info.weatherupdating() else self._hourglass_icon
-    self._screen.blit(weatherupdateicon, (165, 132))
+    self._screen.blit(weatherupdateicon, (188, 142))
     tempupdatesurface = self._font.render('{}'.format(self._min_sec(self._info.outdoortempnextupdatedelta())), True, self._GREY)
-    self._screen.blit(tempupdatesurface, (238, 128))
+    self._screen.blit(tempupdatesurface, (238, 138))
+
+    # Divider
+    self._screen.blit(self._divider, (0, 176))
 
     # Dawn/Dusk
     self._screen.blit(self._dawn_icon, (154, 181))

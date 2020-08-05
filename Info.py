@@ -39,9 +39,6 @@ class Info(object):
     self.__weather_thread = threading.Thread(target=self._weather_thread, args=(config,))
     self.__weather_thread.start()
 
-    # Other delayed-mode details
-    self._remotediskspace = 895994650624
-
   def time(self):
     return datetime.now(tz=self._tz)
 
@@ -54,9 +51,6 @@ class Info(object):
   def localspace(self):
     dummy, dummy2, space = shutil.disk_usage(self._config['images']['local'])
     return space
-
-  def remotespace(self):
-    return self._remotediskspace
 
   def dawn(self):
     return self._dawn
