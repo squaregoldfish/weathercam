@@ -98,7 +98,7 @@ class Screen(object):
     self._screen.blit(timesurface, (0, 0))
 
     # Uptime
-    uptimesurface = self._font.render(str(self._info.uptime()), True, (0, 255, 255))
+    uptimesurface = self._font.render(self._format_delta(self._info.uptime()), True, (0, 255, 255))
     self._screen.blit(self._uptime_icon, (0, 33))
     self._screen.blit(uptimesurface, (33, 29))
 
@@ -150,7 +150,6 @@ class Screen(object):
     self._imagesurface = self._font.render('Image', True, (255,0,0))
     self._screen.blit(self._imagesurface, (10,40))
 
-
   def _format_date(self, date):
     return date.strftime('%Y-%m-%d %H:%M:%S')
 
@@ -159,3 +158,15 @@ class Screen(object):
 
   def _min_sec(self, delta):
     return datetime.utcfromtimestamp(delta.total_seconds()).strftime('%M:%S')
+
+  def _format_delta(self, delta):
+    result = ''
+    if delta.days > 0:
+      result = '{}d '.format(delta.days)
+
+    hours, remainder = divmod(delta.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    result += '{:02}:{:02}:{:02}'.format(int(hours), int(minutes), int(seconds))
+
+    return result
