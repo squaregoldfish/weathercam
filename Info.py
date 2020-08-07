@@ -93,30 +93,33 @@ class Info(object):
 
       self._weather['updating'] = True
 
-      ws = netatmo.WeatherStation({
-        'client_id': config['netatmo']['client_id'],
-        'client_secret': config['netatmo']['client_secret'],
-        'username': config['netatmo']['username'],
-        'password': config['netatmo']['password'],
+      try:
+        ws = netatmo.WeatherStation({
+          'client_id': config['netatmo']['client_id'],
+          'client_secret': config['netatmo']['client_secret'],
+          'username': config['netatmo']['username'],
+          'password': config['netatmo']['password'],
 
-      })
+        })
 
-      ws.get_data()
+        ws.get_data()
 
-      for dev in ws.devices:
-        if dev['_id'] == config['netatmo']['device']:
-          for module in dev['modules']:
-            if module['_id'] == config['netatmo']['temp_module']:
-              self._weather['temp'] = module['dashboard_data']['Temperature']
-              data_time = module['dashboard_data']['time_utc']
-              self._weather['data_time'] = datetime.fromtimestamp(data_time, tz=self._tz)
-              self._weather['last_update'] = datetime.now(tz=self._tz)
-              self._weather['next_update'] = self._weather['data_time'] + timedelta(minutes=11, seconds=30)
-              if self._weather['next_update'] < self._weather['last_update']:
-                self._weather['next_update'] = datetime.now(tz=self._tz) + timedelta(seconds=15)
+        for dev in ws.devices:
+          if dev['_id'] == config['netatmo']['device']:
+            for module in dev['modules']:
+              if module['_id'] == config['netatmo']['temp_module']:
+                self._weather['temp'] = module['dashboard_data']['Temperature']
+                data_time = module['dashboard_data']['time_utc']
+                self._weather['data_time'] = datetime.fromtimestamp(data_time, tz=self._tz)
+                self._weather['last_update'] = datetime.now(tz=self._tz)
+                self._weather['next_update'] = self._weather['data_time'] + timedelta(minutes=11, seconds=30)
+                if self._weather['next_update'] < self._weather['last_update']:
+                  self._weather['next_update'] = datetime.now(tz=self._tz) + timedelta(seconds=15)
 
-            elif module['_id'] == config['netatmo']['rain_module']:
-              self._weather['rain'] = module['dashboard_data']['sum_rain_24']
+              elif module['_id'] == config['netatmo']['rain_module']:
+                self._weather['rain'] = module['dashboard_data']['sum_rain_24']
+      except:
+        pass # Ignore errors for now
 
 
       self._weather['updating'] = False
