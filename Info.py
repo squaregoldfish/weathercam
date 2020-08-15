@@ -34,7 +34,8 @@ class Info(object):
       'data_time': datetime.fromtimestamp(0, tz=self._tz),
       'last_update': datetime.fromtimestamp(0, tz=self._tz),
       'next_update': datetime.now(tz=self._tz),
-      'updating': True
+      'updating': True,
+      'update_delay': 15
     }
     self.__weather_thread = threading.Thread(target=self._weather_thread, args=(config,))
     self.__weather_thread.start()
@@ -114,13 +115,17 @@ class Info(object):
                 self._weather['last_update'] = datetime.now(tz=self._tz)
                 self._weather['next_update'] = self._weather['data_time'] + timedelta(minutes=11, seconds=30)
                 if self._weather['next_update'] < self._weather['last_update']:
-                  self._weather['next_update'] = datetime.now(tz=self._tz) + timedelta(seconds=15)
+                  self._weather['next_update'] = datetime.now(tz=self._tz) + timedelta(seconds=self._weather['update_delay'])
+                  self._weather['update_delay'] = self._weather['update_delay'] * 2
+                  if self._weather['update_delay'] > 3600:
+                    self._weather['update_delay'] = 3600
+                else :
+                  self._weather['update_delay'] = 15
 
               elif module['_id'] == config['netatmo']['rain_module']:
                 self._weather['rain'] = module['dashboard_data']['sum_rain_24']
-      except:
-        pass # Ignore errors for now
-
+      except Exception as e:
+        print(e)
 
       self._weather['updating'] = False
 

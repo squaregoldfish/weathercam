@@ -6,7 +6,7 @@ import pygame
 from pygame.locals import *
 
 class Screen(object):
-  def __init__(self, config, info):
+  def __init__(self, config, info, camera):
 
     self._WHITE = (255, 255, 255)
     self._CYAN = (0, 255, 255)
@@ -22,6 +22,7 @@ class Screen(object):
 
     self._config = config
     self._info = info
+    self._camera = camera
 
     self._lcdsize = (320, 240)
     self._textsurface = None
@@ -51,6 +52,9 @@ class Screen(object):
     self._reload_icon = pygame.image.load('reload.png')
     self._dawn_icon = pygame.image.load('sunrise.png')
     self._dusk_icon = pygame.image.load('sunset.png')
+    self._capture_icon = pygame.image.load('capture.png')
+    self._upload_icon = pygame.image.load('upload.png')
+    self._sleep_icon = pygame.image.load('sleep.png')
 
     self._divider = pygame.Surface((320, 2))
     pygame.draw.line(self._divider, (30, 102, 96), (0, 0), (320, 0), 2)
@@ -124,7 +128,7 @@ class Screen(object):
     self._screen.blit(rainsurface, (221, 104))
 
     self._screen.blit(self._clock_icon, (0, 142))
-    weathertimesurface = self._font.render('{}'.format(self._format_time(self._info.outdoortemplastupdate())), True, self._GREY)
+    weathertimesurface = self._font.render('{}'.format(self._format_time(self._info.outdoortemptime())), True, self._GREY)
     self._screen.blit(weathertimesurface, (33, 138))
 
     weatherupdateicon = self._reload_icon if self._info.weatherupdating() else self._hourglass_icon
@@ -144,6 +148,12 @@ class Screen(object):
     dusksurface = self._font.render(self._format_time(self._info.dusk()), True, self._ORANGE)
     self._screen.blit(dusksurface, (187, 210))
 
+    if self._camera.mode == self._camera.SLEEP:
+      self._screen.blit(self._sleep_icon, (45, 181))
+    elif self._camera.mode == self._camera.CAPTURE:
+      self._screen.blit(self._capture_icon, (45, 181))
+    elif self._camera.mode == self._camera.PROCESS:
+      self._screen.blit(self._upload_icon, (45, 181))
 
 
   def _draw_image(self):
