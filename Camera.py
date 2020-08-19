@@ -1,7 +1,9 @@
 
+import os
 import time
 from datetime import datetime
 import threading
+from picamera import PiCamera
 
 class Camera(object):
   def __init__(self, config, info):
@@ -13,10 +15,16 @@ class Camera(object):
     self._config = config
     self._info = info
 
+    # Initialise camera
+    self._camera = PiCamera()
+    self._camera.resolution = (4000, 3000)
+
+    self._last_image = None
     self._set_mode()
 
     self.__camerathread = threading.Thread(target=self._camera_thread)
     self.__camerathread.start()
+
 
   def _set_mode(self):
     dawn = self._info.dawn()
@@ -46,7 +54,19 @@ class Camera(object):
       self._set_mode()
 
   def _capture_image(self):
-    print("Image")
+    filename = self._get_filename()
+    self._camera.capture(filename)
+    self._last_image = filename
 
   def _process_images(self):
     print("Process")
+
+  def _get_filename(self):
+    image_dir = self._get_today_dir()
+    if not os.path.exists(image_dir):
+      os.makedirs(image_dir)
+
+    return os.path.join(image_dir, "{}.jpg".format(datetime.now().strftime('%Y%m%d%H%M%S')))
+
+  def _get_today_dir(self):
+    return os.path.join(self._config['images']['local'], "{}".format(datetime.now().strftime('%Y%m%d')))

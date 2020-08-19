@@ -9,6 +9,12 @@ font = ''
 [images]
 dir = ''
 
+[remote]
+server = ''
+user = ''
+password = ''
+dir = ''
+
 [netatmo]
 client_id = ''
 client_secret = ''

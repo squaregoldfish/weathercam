@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "d848bfb1a30b9be59be1a5b7649ec5e0ce6dd53af479feaa71e6141ceec7c2b4"
+            "sha256": "a3528598cbfda9618abf28fddf6b3c8b23d304a7e8d2e91cc4377608df610601"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -70,6 +70,13 @@
             ],
             "index": "pypi",
             "version": "==1.0.3"
+        },
+        "picamera": {
+            "hashes": [
+                "sha256:890815aa01e4d855a6a95dd3ad0953b872a6b954982106407df0c5a31a163e50"
+            ],
+            "index": "pypi",
+            "version": "==1.13"
         },
         "pygame": {
             "hashes": [
