@@ -13,6 +13,7 @@ pytz = "*"
 toml = "==0.10.1"
 pygame = "==1.9.6"
 picamera = "*"
+requests = "*"
 
 [dev-packages]
 

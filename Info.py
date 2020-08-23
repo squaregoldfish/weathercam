@@ -25,7 +25,7 @@ class Info(object):
     # Dawn/Dusk
     self._dawn = datetime.fromtimestamp(0, tz=self._tz)
     self._dusk = datetime.fromtimestamp(0, tz=self._tz)
-    self.calctimerange()
+    self.calctimerange(datetime.now())
 
     # Netatmo retrieval
     self._weather = {
@@ -59,8 +59,8 @@ class Info(object):
   def dusk(self):
     return self._dusk
 
-  def calctimerange(self):
-    suninfo = sun(self._location.observer, date=datetime.now(), tzinfo=self._location.timezone)
+  def calctimerange(self, time):
+    suninfo = sun(self._location.observer, date=time, tzinfo=self._location.timezone)
     self._dawn = suninfo['dawn']
     self._dusk = suninfo['dusk']
 
