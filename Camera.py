@@ -74,13 +74,13 @@ class Camera(object):
 
   def _process_images(self):
     remote = config['remote']
-    src_dir = os.path.join(config['images']['local'], _get_today_dir())
-    dest_dir = os.path.join(remote['dir'], _get_today_dir())
+    src_dir = os.path.join(config['images']['local'], get_today_dir())
+    dest_dir = os.path.join(remote['dir'], get_today_dir())
 
     try:
       with pysftp.Connection(remote['server'], username=remote['user'], password=remote['password']) as sftp:
         with sftp.cd(remote['dir']):
-          sftp.mkdir(_get_today_dir())
+          sftp.mkdir(get_today_dir())
 
           sftp.put_d(src_dir, dest_dir, preserve_mtime=True)
 
@@ -90,13 +90,13 @@ class Camera(object):
       _send_message('PROCESSING ERROR: {}'.format(e))
 
   def _get_filename(self):
-    image_dir = self._get_today_dir()
+    image_dir = self.get_today_dir()
     if not os.path.exists(image_dir):
       os.makedirs(image_dir)
 
     return os.path.join(image_dir, "{}.jpg".format(datetime.now().strftime('%Y%m%d-%H%M%S')))
 
-  def _get_today_dir(self):
+  def get_today_dir(self):
     return os.path.join(self._config['images']['local'], "{}".format(datetime.now().strftime('%Y%m%d')))
 
   def _send_message(self, message):

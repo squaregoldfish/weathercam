@@ -29,6 +29,9 @@ class Screen(object):
     self._imagesurface = None
     self._currentpage = self._TEXT
 
+    self._currentimage = None
+
+
     os.putenv('SDF_VIDEODRIVER', 'fbcon')
     os.putenv('SDL_FBDEV', '/dev/fb1')
     os.putenv('SDL_MOUSEDRV', 'TSLIB')
@@ -37,6 +40,7 @@ class Screen(object):
     pygame.init()
     pygame.font.init()
     self._font = pygame.font.Font(self._config['screen']['font'], 33)
+    self._smallfont = pygame.font.Font(self._config['screen']['font'], 18)
     pygame.mouse.set_visible(False)
     self._screen = pygame.display.set_mode(self._lcdsize)
 
@@ -85,9 +89,8 @@ class Screen(object):
 
   def _screen_thread(self):
     while True:
-      self._screen.fill((0,0,0))
-
       if self._currentpage == self._TEXT:
+        self._screen.fill((0,0,0))
         self._draw_text()
       else:
         self._draw_image()
@@ -157,8 +160,18 @@ class Screen(object):
 
 
   def _draw_image(self):
-    self._imagesurface = self._font.render('Image', True, (255,0,0))
-    self._screen.blit(self._imagesurface, (10,40))
+
+    today_images = os.listdir(self._camera.get_today_dir())
+    today_images.sort()
+    image_name = today_images[-2]
+    image_file = os.path.join(self._camera.get_today_dir(), image_name)
+    if image_file != self._currentimage:
+      image = pygame.image.load(image_file)
+      image = pygame.transform.scale(image, (320, 240))
+      self._screen.blit(image, (0,0))
+      self._currentimage = image_file
+      self._imagesurface = self._smallfont.render(image_name, True, (255,255,0))
+      self._screen.blit(self._imagesurface, (5, 215))
 
   def _format_date(self, date):
     return date.strftime('%Y-%m-%d %H:%M:%S')
