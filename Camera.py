@@ -1,11 +1,11 @@
-
-import os
+import os, shutil
 import time
 from datetime import datetime
 from datetime import timedelta
 import threading
 from picamera import PiCamera
 import requests
+import pysftp
 
 class Camera(object):
   def __init__(self, config, info):
@@ -69,11 +69,25 @@ class Camera(object):
 
   def _capture_image(self):
     filename = self._get_filename()
-    #self._camera.capture(filename)
+    self._camera.capture(filename)
     self._last_image = filename
 
   def _process_images(self):
-    print("Process")
+    remote = config['remote']
+    src_dir = os.path.join(config['images']['local'], _get_today_dir())
+    dest_dir = os.path.join(remote['dir'], _get_today_dir())
+
+    try:
+      with pysftp.Connection(remote['server'], username=remote['user'], password=remote['password']) as sftp:
+        with sftp.cd(remote['dir']):
+          sftp.mkdir(_get_today_dir())
+
+          sftp.put_d(src_dir, dest_dir, preserve_mtime=True)
+
+        # Delete the local folder only if the upload succeeded
+        shutil.rmtree(src_dir)
+    except Exception as e:
+      _send_message('PROCESSING ERROR: {}'.format(e))
 
   def _get_filename(self):
     image_dir = self._get_today_dir()
