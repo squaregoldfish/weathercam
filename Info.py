@@ -1,4 +1,5 @@
 # Holds data for the info screen and image overlays
+import os
 import time
 from datetime import datetime
 from datetime import timedelta
@@ -124,6 +125,10 @@ class Info(object):
 
               elif module['_id'] == config['netatmo']['rain_module']:
                 self._weather['rain'] = module['dashboard_data']['sum_rain_24']
+
+        weather_file = os.path.join(self.get_today_dir(), 'weather.csv')
+        with open(weather_file, 'a') as f:
+          f.write('{},{},{}\n'.format(self._weather['data_time'], self._weather['temp'], self._weather['rain']))
       except Exception as e:
         print(e)
 
@@ -131,3 +136,6 @@ class Info(object):
 
       while datetime.now(tz=self._tz) < self._weather['next_update']:
         time.sleep(1)
+
+  def get_today_dir(self):
+    return os.path.join(self._config['images']['local'], "{}".format(datetime.now().strftime('%Y%m%d')))

@@ -90,7 +90,6 @@ class Screen(object):
   def _screen_thread(self):
     while True:
       if self._currentpage == self._TEXT:
-        self._screen.fill((0,0,0))
         self._draw_text()
       else:
         self._draw_image()
@@ -99,6 +98,7 @@ class Screen(object):
       time.sleep(1)
 
   def _draw_text(self):
+    self._screen.fill((0,0,0))
 
     # Current Time
     timesurface = self._font.render(self._format_date(self._info.time()), True, (255,255,255))
@@ -160,11 +160,13 @@ class Screen(object):
 
 
   def _draw_image(self):
-
-    today_images = os.listdir(self._camera.get_today_dir())
+    #self._screen.fill((0,0,0))
+    #imagesurface = self._smallfont.render('Image preview disabled', True, (255,255,0))
+    #self._screen.blit(imagesurface, (5, 215))
+    today_images = os.listdir(self._info.get_today_dir())
     today_images.sort()
     image_name = today_images[-2]
-    image_file = os.path.join(self._camera.get_today_dir(), image_name)
+    image_file = os.path.join(self._info.get_today_dir(), image_name)
     if image_file != self._currentimage:
       image = pygame.image.load(image_file)
       image = pygame.transform.scale(image, (320, 240))
