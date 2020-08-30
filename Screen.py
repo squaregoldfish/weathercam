@@ -165,7 +165,10 @@ class Screen(object):
     #self._screen.blit(imagesurface, (5, 215))
     today_images = os.listdir(self._info.get_today_dir())
     today_images.sort()
-    image_name = today_images[-2]
+
+    # The last file is the weather, and the previous may be being written.
+    # So get the second from last
+    image_name = today_images[-3]
     image_file = os.path.join(self._info.get_today_dir(), image_name)
     if image_file != self._currentimage:
       image = pygame.image.load(image_file)

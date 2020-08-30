@@ -73,21 +73,22 @@ class Camera(object):
     self._last_image = filename
 
   def _process_images(self):
-    remote = config['remote']
-    src_dir = os.path.join(config['images']['local'], self._info.get_today_dir())
-    dest_dir = os.path.join(remote['dir'], self._info.get_today_dir())
+    remote = self._config['remote']
+    src_dir = self._info.get_today_dir()
+    dest_dir = os.path.join(remote['dir'], os.path.split(self._info.get_today_dir())[1])
 
     try:
       with pysftp.Connection(remote['server'], username=remote['user'], password=remote['password']) as sftp:
         with sftp.cd(remote['dir']):
-          sftp.mkdir(self._info.get_today_dir())
+          if not sftp.exists(os.path.split(dest_dir)[1]):
+            sftp.mkdir(os.path.split(dest_dir[1]))
 
           sftp.put_d(src_dir, dest_dir, preserve_mtime=True)
 
         # Delete the local folder only if the upload succeeded
         shutil.rmtree(src_dir)
     except Exception as e:
-      _send_message('PROCESSING ERROR: {}'.format(e))
+      self._send_message('PROCESSING ERROR: {}'.format(e))
 
   def _get_filename(self):
     image_dir = self._info.get_today_dir()

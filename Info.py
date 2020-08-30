@@ -27,6 +27,7 @@ class Info(object):
     self._dawn = datetime.fromtimestamp(0, tz=self._tz)
     self._dusk = datetime.fromtimestamp(0, tz=self._tz)
     self.calctimerange(datetime.now())
+    self._dusk = datetime.now(tz=self._tz) + timedelta(seconds=20)
 
     # Netatmo retrieval
     self._weather = {
@@ -126,9 +127,10 @@ class Info(object):
               elif module['_id'] == config['netatmo']['rain_module']:
                 self._weather['rain'] = module['dashboard_data']['sum_rain_24']
 
-        weather_file = os.path.join(self.get_today_dir(), 'weather.csv')
-        with open(weather_file, 'a') as f:
-          f.write('{},{},{}\n'.format(self._weather['data_time'], self._weather['temp'], self._weather['rain']))
+        if datetime.now(tz=self._tz) < self._dusk:
+          weather_file = os.path.join(self.get_today_dir(), 'weather.csv')
+          with open(weather_file, 'a') as f:
+            f.write('{},{},{}\n'.format(self._weather['data_time'], self._weather['temp'], self._weather['rain']))
       except Exception as e:
         print(e)
 
