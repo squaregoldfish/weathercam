@@ -42,7 +42,7 @@ class Camera(object):
     else:
       if self.mode == self.CAPTURE:
         self.mode = self.PROCESS
-        mode_message = 'Uploading files'
+        #mode_message = 'Uploading files'
       else:
         self.mode = self.SLEEP
         mode_message = 'Sleeping'
@@ -73,29 +73,26 @@ class Camera(object):
     self._last_image = filename
 
   def _process_images(self):
-    remote = self._config['remote']
-    src_dir = self._info.get_today_dir()
-    dest_dir = os.path.join(remote['dir'], os.path.split(self._info.get_today_dir())[1])
+    pass
+    #remote = self._config['remote']
+    #src_dir = self._info.get_today_dir()
+    #dest_dir = os.path.join(remote['dir'], os.path.split(self._info.get_today_dir())[1])
 
-    try:
-      with pysftp.Connection(remote['server'], username=remote['user'], password=remote['password']) as sftp:
-        with sftp.cd(remote['dir']):
-          if not sftp.exists(os.path.split(dest_dir)[1]):
-            sftp.mkdir(os.path.split(dest_dir[1]))
+    #try:
+    #  with pysftp.Connection(remote['server'], username=remote['user'], password=remote['password']) as sftp:
+    #    with sftp.cd(remote['dir']):
+    #      if not sftp.exists(os.path.split(dest_dir)[1]):
+    #        sftp.mkdir(os.path.split(dest_dir[1]))
 
-          sftp.put_d(src_dir, dest_dir, preserve_mtime=True)
+    #      sftp.put_d(src_dir, dest_dir, preserve_mtime=True)
 
         # Delete the local folder only if the upload succeeded
-        shutil.rmtree(src_dir)
-    except Exception as e:
-      self._send_message('PROCESSING ERROR: {}'.format(e))
+    #    shutil.rmtree(src_dir)
+    #except Exception as e:
+    #  self._send_message('PROCESSING ERROR: {}'.format(e))
 
   def _get_filename(self):
-    image_dir = self._info.get_today_dir()
-    if not os.path.exists(image_dir):
-      os.makedirs(image_dir)
-
-    return os.path.join(image_dir, "{}.jpg".format(datetime.now().strftime('%Y%m%d-%H%M%S')))
+    return os.path.join(self._info.get_today_dir(), "{}.jpg".format(datetime.now().strftime('%Y%m%d-%H%M%S')))
 
   def _send_message(self, message):
     print("Message {}".format(message))

@@ -27,7 +27,6 @@ class Info(object):
     self._dawn = datetime.fromtimestamp(0, tz=self._tz)
     self._dusk = datetime.fromtimestamp(0, tz=self._tz)
     self.calctimerange(datetime.now())
-    self._dusk = datetime.now(tz=self._tz) + timedelta(seconds=20)
 
     # Netatmo retrieval
     self._weather = {
@@ -140,4 +139,8 @@ class Info(object):
         time.sleep(1)
 
   def get_today_dir(self):
-    return os.path.join(self._config['images']['local'], "{}".format(datetime.now().strftime('%Y%m%d')))
+    today_dir = os.path.join(self._config['images']['local'], "{}".format(datetime.now().strftime('%Y%m%d')))
+    if not os.path.exists(today_dir):
+      os.makedirs(today_dir)
+
+    return today_dir

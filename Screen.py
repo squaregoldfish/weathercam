@@ -111,12 +111,12 @@ class Screen(object):
 
     # CPU temp & disk space
     self._screen.blit(self._cputemp_icon, (0, 66))
-    cputempsurface = self._font.render("{:6.1f}°C".format(self._info.cputemp()), True, self._PURPLE)
+    cputempsurface = self._font.render("{:5.1f}°C".format(self._info.cputemp()), True, self._PURPLE)
     self._screen.blit(cputempsurface, (33, 62))
 
-    self._screen.blit(self._microsd_icon, (188, 66))
+    self._screen.blit(self._microsd_icon, (171, 66))
     localspacesurface = self._font.render("{:4.1f}Gb".format(self._info.localspace() / 1073741824), True, self._PURPLE)
-    self._screen.blit(localspacesurface, (221, 62))
+    self._screen.blit(localspacesurface, (204, 62))
 
     # Divider
     self._screen.blit(self._divider, (0, 100))
@@ -160,22 +160,25 @@ class Screen(object):
 
 
   def _draw_image(self):
-    #self._screen.fill((0,0,0))
     #imagesurface = self._smallfont.render('Image preview disabled', True, (255,255,0))
     #self._screen.blit(imagesurface, (5, 215))
     today_images = os.listdir(self._info.get_today_dir())
     today_images.sort()
-
-    # The last file is the weather, and the previous may be being written.
-    # So get the second from last
-    image_name = today_images[-3]
-    image_file = os.path.join(self._info.get_today_dir(), image_name)
-    if image_file != self._currentimage:
-      image = pygame.image.load(image_file)
-      image = pygame.transform.scale(image, (320, 240))
-      self._screen.blit(image, (0,0))
-      self._currentimage = image_file
-      self._imagesurface = self._smallfont.render(image_name, True, (255,255,0))
+    if len(today_images) >= 3:
+      # The last file is the weather, and the previous may be being written.
+      # So get the second from last
+      image_name = today_images[-3]
+      image_file = os.path.join(self._info.get_today_dir(), image_name)
+      if image_file != self._currentimage:
+        image = pygame.image.load(image_file)
+        image = pygame.transform.scale(image, (320, 240))
+        self._screen.blit(image, (0,0))
+        self._currentimage = image_file
+        self._imagesurface = self._smallfont.render(image_name, True, (255,255,0))
+        self._screen.blit(self._imagesurface, (5, 215))
+    else:
+      self._screen.fill((0,0,0))
+      self._imagesurface = self._smallfont.render('No image available', True, (255,255,0))
       self._screen.blit(self._imagesurface, (5, 215))
 
   def _format_date(self, date):
