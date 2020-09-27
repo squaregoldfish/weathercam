@@ -8,6 +8,7 @@ from pygame.locals import *
 from uptime import uptime
 import psutil
 from gpiozero import CPUTemperature
+from gpiozero import Button
 import subprocess
 import re
 import board
@@ -18,7 +19,14 @@ FONT = '/root/TerminusTTF-4.47.0.ttf'
 
 def screen_thread():
   while True:
-    draw_screen()
+    if door_button.is_active:
+      backlight(0)
+      screen.fill((0,0,0))
+      pygame.display.flip()
+    else:
+      backlight(1)
+      draw_screen()
+
     time.sleep(1)
 
 def current_time():
@@ -144,6 +152,9 @@ def draw_screen():
 
   pygame.display.flip()
 
+def backlight(val):
+  with open('/sys/class/backlight/soc:backlight/brightness', 'w') as b:
+    b.write(str(val))
 
 ############################################
 ##
@@ -180,6 +191,8 @@ cputemp = CPUTemperature()
 
 i2c = busio.I2C(board.SCL, board.SDA)
 temp_sensor = adafruit_am2320.AM2320(i2c)
+
+door_button = Button(22)
 
 screenthread = threading.Thread(target=screen_thread)
 screenthread.start()
