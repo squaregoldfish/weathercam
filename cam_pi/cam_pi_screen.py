@@ -10,6 +10,9 @@ import psutil
 from gpiozero import CPUTemperature
 import subprocess
 import re
+import board
+import busio
+import adafruit_am2320
 
 FONT = '/root/TerminusTTF-4.47.0.ttf'
 
@@ -54,7 +57,7 @@ def cpu_temp():
   return '{:5.1f}°C'.format(cputemp.temperature)
 
 def case_temp():
-  return ' ??.?°C'
+  return '{:5.1f}°C'.format(temp_sensor.temperature)
 
 def wifi():
   quality = 0
@@ -174,6 +177,9 @@ divider = pygame.Surface((320, 2))
 pygame.draw.line(divider, (30, 102, 96), (0, 0), (320, 0), 2)
 
 cputemp = CPUTemperature()
+
+i2c = busio.I2C(board.SCL, board.SDA)
+temp_sensor = adafruit_am2320.AM2320(i2c)
 
 screenthread = threading.Thread(target=screen_thread)
 screenthread.start()

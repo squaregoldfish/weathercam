@@ -9,6 +9,7 @@ pygame = "*"
 uptime = "*"
 gpiozero = "*"
 psutil = "*"
+adafruit-circuitpython-am2320 = "*"
 
 [dev-packages]
 
