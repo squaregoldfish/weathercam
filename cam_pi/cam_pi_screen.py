@@ -67,6 +67,9 @@ def cpu_temp():
 def case_temp():
   return '{:5.1f}°C'.format(temp_sensor.temperature)
 
+def case_humidity():
+  return '{:5.1f} %'.format(temp_sensor.relative_humidity)
+
 def wifi():
   quality = 0
   max_quality = 100
@@ -99,9 +102,6 @@ def draw_screen():
   screen.blit(uptime_icon, (0, 33))
   screen.blit(uptimesurface, (33, 29))
 
-  # Divider
-  screen.blit(divider, (0, 66))
-
   # Load Average
   load = load_avg()
   load1_surface = font.render(load[0], True, (255, 255, 0))
@@ -123,26 +123,25 @@ def draw_screen():
   screen.blit(ram_icon, (136, 109))
   screen.blit(ram_surface, (170, 105))
 
-  # Divider
-  screen.blit(divider, (0, 139))
+  # Case temp
+  case_temp_surface = font.render(case_temp(), True, (255, 128, 0))
+  screen.blit(case_temp_icon, (0, 145))
+  screen.blit(case_temp_surface, (33, 141))
+
+  # Humidity
+  humidity_surface = font.render(case_humidity(), True, (83, 164, 202))
+  screen.blit(humidity_icon, (0, 181))
+  screen.blit(humidity_surface, (33, 177))
 
   # CPU Temp
   cpu_temp_surface = font.render(cpu_temp(), True, (255, 0, 0))
-  screen.blit(cpu_temp_icon, (0, 145))
-  screen.blit(cpu_temp_surface, (33, 141))
-
-  # Case temp
-  case_temp_surface = font.render(case_temp(), True, (255, 128, 0))
-  screen.blit(case_temp_icon, (170, 145))
-  screen.blit(case_temp_surface, (203, 141))
-
-  # Divider
-  screen.blit(divider, (0, 175))
+  screen.blit(cpu_temp_icon, (170, 145))
+  screen.blit(cpu_temp_surface, (203, 141))
 
   # Wifi
   wifi_surface = font.render(wifi(), True, (153, 51, 255))
-  screen.blit(wifi_icon, (0, 181))
-  screen.blit(wifi_surface, (33, 177))
+  screen.blit(wifi_icon, (0, 214))
+  screen.blit(wifi_surface, (33, 210))
 
   # Camera icon
   if (camera_active()):
@@ -180,6 +179,7 @@ speedometer_icon = pygame.image.load('speedometer.png')
 ram_icon = pygame.image.load('ram.png')
 cpu_temp_icon = pygame.image.load('cpu_temp.png')
 case_temp_icon = pygame.image.load('thermometer.png')
+humidity_icon = pygame.image.load('humidity.png')
 wifi_icon = pygame.image.load('wifi.png')
 camera_icon = pygame.image.load('camera.png')
 disabled_camera_icon = pygame.image.load('camera_disabled.png')
