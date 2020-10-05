@@ -27,7 +27,7 @@ def screen_thread():
       backlight(1)
       draw_screen()
 
-    time.sleep(1)
+    time.sleep(0.75)
 
 def current_time():
   return '{}'.format(datetime.now().strftime('%Y/%m/%d %H:%M:%S'))
@@ -65,10 +65,24 @@ def cpu_temp():
   return '{:5.1f}°C'.format(cputemp.temperature)
 
 def case_temp():
-  return '{:5.1f}°C'.format(temp_sensor.temperature)
+  result = '??.?°C'
+
+  try:
+    result = '{:5.1f}°C'.format(temp_sensor.temperature)
+  except:
+    pass
+
+  return result
 
 def case_humidity():
-  return '{:5.1f} %'.format(temp_sensor.relative_humidity)
+  result = '??.? %'
+
+  try:
+    result = '{:5.1f} %'.format(temp_sensor.relative_humidity)
+  except:
+    pass
+
+  return result
 
 def wifi():
   quality = 0
