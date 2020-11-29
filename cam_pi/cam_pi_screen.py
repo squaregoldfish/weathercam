@@ -14,11 +14,15 @@ import re
 import board
 import busio
 import adafruit_am2320
+import signal
 
 FONT = '/root/TerminusTTF-4.47.0.ttf'
 
+KEEP_RUNNING = True
+
 def screen_thread():
-  while True:
+  global KEEP_RUNNING
+  while KEEP_RUNNING:
     if door_button.is_active:
       backlight(0)
       screen.fill((0,0,0))
@@ -28,6 +32,10 @@ def screen_thread():
       draw_screen()
 
     time.sleep(0.75)
+
+  # Make sure the screen is on
+  backlight(1)
+
 
 def current_time():
   return '{}'.format(datetime.now().strftime('%Y/%m/%d %H:%M:%S'))
@@ -169,9 +177,15 @@ def backlight(val):
   with open('/sys/class/backlight/soc:backlight/brightness', 'w') as b:
     b.write(str(val))
 
+# Unix signal handler
+def receiveSignal(signalNumber, frame):
+  global KEEP_RUNNING
+  KEEP_RUNNING = False
+
 ############################################
 ##
 ## Here we go
+signal.signal(signal.SIGTERM, receiveSignal)
 
 os.putenv('SDF_VIDEODRIVER', 'fbcon')
 os.putenv('SDL_FBDEV', '/dev/fb1')
