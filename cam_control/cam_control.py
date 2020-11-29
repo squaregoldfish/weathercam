@@ -18,6 +18,8 @@ def process_command(command):
       result = start_cam()
     elif command == 'stopcam':
       result = stop_cam()
+    elif command == 'status':
+      result = cam_status()
     else:
       result = 'Command not recognised'
   except Exception as e:
@@ -54,6 +56,14 @@ def stop_cam():
       result = "Failed to shut down camera"
     else:
       result = "Camera shut down"
+
+  return result
+
+def cam_status():
+  result = 'Not running'
+  pid = get_cam_pid()
+  if pid is not None:
+    result = 'Running'
 
   return result
 
