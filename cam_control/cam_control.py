@@ -102,6 +102,7 @@ SOCKET.bind(('', PORT))
 SOCKET.listen(5)
 logging.debug('Server listening')
 while KEEP_RUNNING:
+  conn = None
   try:
     conn, addr = SOCKET.accept()
     command = conn.recv(512).decode("utf-8").strip()
@@ -114,6 +115,7 @@ while KEEP_RUNNING:
     if KEEP_RUNNING:
       logging.error(e)
   finally:
-    conn.close()
+    if conn is not None:
+      conn.close()
 
 logging.info('Shutting down')
