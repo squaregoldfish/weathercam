@@ -77,29 +77,43 @@ def get_cam_pid():
 
   int(x.stdout.decode())
 
+# Unix signal handler
+def receiveSignal(signalNumber, frame):
+  global KEEP_RUNNING
+  global SOCKET
+  SOCKET.shutdown(socket.SHUT_RDWR)
+  KEEP_RUNNING = False
+
 ################################
 #
 # Start up the server
+
+KEEP_RUNNING = True
+signal.signal(signal.SIGTERM, receiveSignal)
 
 logging.basicConfig(filename=LOG_FILE, format='%(asctime)s %(levelname)s:%(message)s', level=logging.DEBUG)
 logging.debug('Weathercam control server')
 logging.debug(f'Starting server on port {PORT}')
 
-s = socket.socket()
-s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-s.bind(('', PORT))
+SOCKET = socket.socket()
+SOCKET.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+SOCKET.bind(('', PORT))
 
-s.listen(5)
+SOCKET.listen(5)
 logging.debug('Server listening')
-while True:
-  conn, addr = s.accept()
+while KEEP_RUNNING:
   try:
+    conn, addr = SOCKET.accept()
     command = conn.recv(512).decode("utf-8").strip()
     logging.info(f'{addr}: {command}')
     result = process_command(command)
     logging.info(f'Sending result: {result}')
     conn.send(result.encode(encoding='utf_8', errors='strict'))
   except Exception as e:
-    logging.error(e)
+    # Only log an error if we haven't been told to shut down
+    if KEEP_RUNNING:
+      logging.error(e)
   finally:
     conn.close()
+
+logging.info('Shutting down')
