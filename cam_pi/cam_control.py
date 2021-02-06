@@ -5,6 +5,8 @@ import subprocess
 import os
 import signal
 import time
+import json
+from cam_status import cam_status
 
 LOG_FILE='/var/log/cam_control.log'
 PORT=10570
@@ -19,7 +21,7 @@ def process_command(command):
     elif command == 'stopcam':
       result = stop_cam()
     elif command == 'status':
-      result = cam_status()
+      result = status()
     else:
       result = 'Command not recognised'
   except Exception as e:
@@ -59,13 +61,21 @@ def stop_cam():
 
   return result
 
-def cam_status():
-  result = 'Not running'
-  pid = get_cam_pid()
-  if pid is not None:
-    result = 'Running'
+def status():
+  status = {}
+  status['time'] = cam_status.time_string(True)
+  status['uptime'] = cam_status.sys_uptime()
+  status['load'] = cam_status.load_avg()
+  status['cpu'] = cam_status.cpu()
+  status['ram_used'] = cam_status.ram_used()
+  status['ram_free'] = cam_status.ram_free()
+  status['cpu_temp'] = cam_status.cpu_temp()
+  status['case_temp'] = cam_status.case_temp()
+  status['case_humidity'] = cam_status.case_humidity()
+  status['wifi'] = cam_status.wifi()
+  status['active'] = cam_status.camera_active()
 
-  return result
+  return json.dumps(status)
 
 def get_cam_pid():
   pid = None
@@ -108,7 +118,6 @@ while KEEP_RUNNING:
     command = conn.recv(512).decode("utf-8").strip()
     logging.info(f'{addr}: {command}')
     result = process_command(command)
-    logging.info(f'Sending result: {result}')
     conn.send(result.encode(encoding='utf_8', errors='strict'))
   except Exception as e:
     # Only log an error if we haven't been told to shut down

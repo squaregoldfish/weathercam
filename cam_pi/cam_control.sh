@@ -46,7 +46,7 @@ case "$1" in
                   kill -15 $pid
                   sleep 2
                 fi
-                cd /root/weathercam/cam_control
+                cd /root/weathercam/cam_pi
                 pipenv run python cam_control.py &
                 sleep 20
                 f_message "Restarted cam_control"
