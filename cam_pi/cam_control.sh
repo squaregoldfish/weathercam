@@ -22,7 +22,7 @@ case "$1" in
                 then
                   f_message "cam_control already running"
                 else
-                  cd /root/weathercam/cam_control
+                  cd /root/weathercam/cam_pi
                   pipenv run python cam_control.py &
                   sleep 20
                   f_message "cam_control started"
