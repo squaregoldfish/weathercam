@@ -62,14 +62,14 @@ def draw_screen():
 
   # Case temp
   casetemp = cam_status.case_temp()
-  casetempstr = ' ??.?°C' if casetemp == 999 else f'{casetemp:5.1f}°C'
+  casetempstr = ' ??.?°C' if casetemp == -999 else f'{casetemp:5.1f}°C'
   case_temp_surface = font.render(casetempstr, True, (255, 128, 0))
   screen.blit(case_temp_icon, (0, 145))
   screen.blit(case_temp_surface, (33, 141))
 
   # Humidity
   humidity = cam_status.case_humidity()
-  humiditystr = ' ??.?°C' if humidity == 999 else f'{humidity:5.1f}°C'
+  humiditystr = ' ??.?°C' if humidity == -999 else f'{humidity:5.1f}°C'
   humidity_surface = font.render(humiditystr, True, (83, 164, 202))
   screen.blit(humidity_icon, (0, 181))
   screen.blit(humidity_surface, (33, 177))
