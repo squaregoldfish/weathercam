@@ -1,5 +1,6 @@
 import socket
 import logging
+from logging.handlers import RotatingFileHandler
 import shlex
 import subprocess
 import os
@@ -12,40 +13,40 @@ LOG_FILE='/var/log/cam_control.log'
 PORT=10570
 MJPG_STREAMER_CMD = 'mjpg_streamer -b -i "input_uvc.so -f 5 -r 1920x1080 -q 98" -o "output_http.so -w /usr/local/share/mjpg-streamer/www"'
 
-def process_command(command):
+def process_command(command, logger):
   result = None
 
   try:
     if command == 'startcam':
-      result = start_cam()
+      result = start_cam(logger)
     elif command == 'stopcam':
-      result = stop_cam()
+      result = stop_cam(logger)
     elif command == 'status':
-      result = status()
+      result = status(logger)
     else:
       result = 'Command not recognised'
   except Exception as e:
-    logging.error(e, exc_info=True)
+    logger.error(e, exc_info=True)
     result = 'Internal error'
 
 
   return f'{result}\n'
 
-def start_cam():
+def start_cam(logger):
   result = None
   existing_pid = get_cam_pid()
   if existing_pid is not None:
-    logging.info(f'Camera already running with PID {existing_pid}')
+    logger.info(f'Camera already running with PID {existing_pid}')
     result = "Camera already running"
   else:
     process = subprocess.Popen(shlex.split(MJPG_STREAMER_CMD),
       stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    logging.info(f'Camera started with process {process.pid}')
+    logger.info(f'Camera started with process {process.pid}')
     result = "Camera started"
 
   return result
 
-def stop_cam():
+def stop_cam(logger):
   result = None
 
   pid = get_cam_pid()
@@ -61,7 +62,7 @@ def stop_cam():
 
   return result
 
-def status():
+def status(logger):
   status = {}
   status['time'] = cam_status.time_string(True)
   status['uptime'] = cam_status.sys_uptime()
@@ -101,30 +102,34 @@ def receiveSignal(signalNumber, frame):
 KEEP_RUNNING = True
 signal.signal(signal.SIGTERM, receiveSignal)
 
-logging.basicConfig(filename=LOG_FILE, format='%(asctime)s %(levelname)s:%(message)s', level=logging.DEBUG)
-logging.debug('Weathercam control server')
-logging.debug(f'Starting server on port {PORT}')
+logger = logging.getLogger('CamControl')
+logger.setLevel(logging.DEBUG)
+handler = RotatingFileHandler(LOG_FILE, maxBytes=10000000, backupCount=5)
+logger.addHandler(handler)
+
+logger.debug('Weathercam control server')
+logger.debug(f'Starting server on port {PORT}')
 
 SOCKET = socket.socket()
 SOCKET.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 SOCKET.bind(('', PORT))
 
 SOCKET.listen(5)
-logging.debug('Server listening')
+logger.debug('Server listening')
 while KEEP_RUNNING:
   conn = None
   try:
     conn, addr = SOCKET.accept()
     command = conn.recv(512).decode("utf-8").strip()
-    logging.info(f'{addr}: {command}')
-    result = process_command(command)
+    logger.info(f'{addr}: {command}')
+    result = process_command(command, logger)
     conn.send(result.encode(encoding='utf_8', errors='strict'))
   except Exception as e:
     # Only log an error if we haven't been told to shut down
     if KEEP_RUNNING:
-      logging.error(e)
+      logger.error(e)
   finally:
     if conn is not None:
       conn.close()
 
-logging.info('Shutting down')
+logger.info('Shutting down')
