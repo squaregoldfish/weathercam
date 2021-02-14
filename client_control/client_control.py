@@ -5,8 +5,10 @@ import time
 import socket
 import json
 from datetime import date
+from datetime import datetime
 from astral import LocationInfo
 from astral.sun import sun
+from dateutil.tz import *
 
 LONGITUDE=5.417278
 LATITUDE=60.554981
@@ -20,12 +22,14 @@ SUNSET_COLOR = 2
 TIME_COLOR = 3
 CAM_RUNNING_COLOR = 4
 CAM_NOT_RUNNING_COLOR = 5
-PI_HEADER_COLOR = 5
+PI_HEADER_COLOR = 6
 
 SUNRISE = None
 SUNSET = None
 
 def time_thread(stdscr):
+  global SUNRISE
+  global SUNSET
   try:
     while True:
       last_sun_update = None
@@ -38,11 +42,11 @@ def time_thread(stdscr):
         SUNSET = s['sunset']
         last_sun_update = date.today()
 
-        # Update screen
-        stdscr.addstr(1, 28, SUNRISE.strftime('%H:%M:%S %Z'), curses.color_pair(SUNRISE_COLOR))
-        stdscr.addstr(2, 28, SUNSET.strftime('%H:%M:%S %Z'), curses.color_pair(SUNSET_COLOR))
 
       stdscr.addstr(0, 17, time.strftime('%Y-%m-%d %H:%M:%S %Z'), curses.color_pair(TIME_COLOR))
+      stdscr.addstr(1, 28, SUNRISE.strftime('%H:%M:%S %Z'), curses.color_pair(SUNRISE_COLOR))
+      stdscr.addstr(2, 28, SUNSET.strftime('%H:%M:%S %Z'), curses.color_pair(SUNSET_COLOR))
+
       stdscr.refresh()
       time.sleep(1)
   except:
@@ -53,53 +57,83 @@ def camera_control_thread(stdscr):
   global ERROR
   try:
     while True:
-      cam_status = camera_command('status')
-      if cam_status['active']:
+      status = camera_command('status')
+
+      if SUNRISE is not None:
+        now = datetime.now(tzlocal())
+        if now >= SUNRISE and now < SUNSET:
+          if not status['active']:
+            camera_command('startcam')
+        elif status['active']:
+          camera_command('stopcam')
+
+      if status is None:
+        stdscr.addstr(3, 33, 'Unknown')
+      elif status['active']:
         stdscr.addstr(3, 33, 'Running', curses.color_pair(CAM_RUNNING_COLOR))
       else:
         stdscr.addstr(3, 29, 'Not Running', curses.color_pair(CAM_NOT_RUNNING_COLOR))
 
-      stdscr.addstr(6, 17, cam_status['time'])
-      stdscr.addstr(7, 40 - len(cam_status['uptime']), cam_status['uptime'])
-      stdscr.addstr(8, 34, f'{cam_status["load"][0]:6.2f}')
-      stdscr.addstr(9, 36, f'{cam_status["cpu"]:>3}%')
-      
-      memstr = f'{cam_status["ram_used"]}/{cam_status["ram_free"]}Mb'
-      stdscr.addstr(10, 40 - len(memstr), memstr)
 
-      cputempstr = f'{cam_status["cpu_temp"]:5.1f}°C'
-      stdscr.addstr(11, 40 - len(cputempstr), cputempstr)
+      if status is not None:
+        stdscr.addstr(6, 17, status['time'])
+        stdscr.addstr(7, 40 - len(status['uptime']), status['uptime'])
+        stdscr.addstr(8, 20, f'{status["load"][0]:6.2f} {status["load"][1]:6.2f} {status["load"][2]:6.2f}')
+        stdscr.addstr(9, 36, f'{status["cpu"]:>3}%')
 
-      casetempstr = '??.?°C'
-      if cam_status['case_temp'] != -999:
-        casetempstr = f'{cam_status["case_temp"]:8.1f}°C'
+        memstr = f'{status["ram_used"]}/{status["ram_free"]}Mb'
+        stdscr.addstr(10, 40 - len(memstr), memstr)
 
-      stdscr.addstr(12, 40 - len(casetempstr), casetempstr)
+        cputempstr = f'{status["cpu_temp"]:5.1f}°C'
+        stdscr.addstr(11, 40 - len(cputempstr), cputempstr)
 
-      casehumidstr = '??.?%'
-      if cam_status['case_humidity'] != -999:
-        casehumidstr = f'{cam_status["case_humidity"]:>8.1f}%'
+        casetempstr = '??.?°C'
+        if status['case_temp'] != -999:
+          casetempstr = f'{status["case_temp"]:8.1f}°C'
 
-      stdscr.addstr(13, 40 - len(casehumidstr), casehumidstr)
+        stdscr.addstr(12, 40 - len(casetempstr), casetempstr)
 
-      wifistr = f'{cam_status["wifi"][0]}%, {cam_status["wifi"][1]}dBm'
-      stdscr.addstr(14, 40 - len(wifistr), wifistr)
+        casehumidstr = '??.?%'
+        if status['case_humidity'] != -999:
+          casehumidstr = f'{status["case_humidity"]:>8.1f}%'
 
-      stdscr.refresh()
-      time.sleep(5)
+        stdscr.addstr(13, 40 - len(casehumidstr), casehumidstr)
+
+        wifistr = f'{status["wifi"][0]}%, {status["wifi"][1]}dBm'
+        stdscr.addstr(14, 40 - len(wifistr), wifistr)
+
+      time.sleep(calc_sleep_time(5))
 
   except:
     ERROR = traceback.format_exc()
 
+def calc_sleep_time(target):
+  current_seconds_digit = int(time.strftime('%S')) % 10
+  if current_seconds_digit < target:
+    return target - current_seconds_digit
+  else:
+    return 10 - current_seconds_digit + target
+
 def camera_command(command):
   with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.connect((STREAM_SERVER, STREAM_SERVER_CONTROL_PORT))
-    s.sendall(b'status')
-    return json.loads(s.recv(1024))
+    s.sendall(bytes(command, 'utf-8'))
+    return json.loads(s.recv(1024)) if command == 'status' else None
 
 
 # Set up the screen
 def setup_screen(stdscr):
+  # Initialise colors
+  curses.init_pair(TIME_COLOR, 81, curses.COLOR_BLACK)
+  curses.init_pair(SUNRISE_COLOR, 226, curses.COLOR_BLACK)
+  curses.init_pair(SUNSET_COLOR, 172, curses.COLOR_BLACK)
+  curses.init_pair(CAM_RUNNING_COLOR, 82, curses.COLOR_BLACK)
+  curses.init_pair(CAM_NOT_RUNNING_COLOR, 197, curses.COLOR_BLACK)
+  curses.init_pair(PI_HEADER_COLOR, curses.COLOR_BLACK, curses.COLOR_WHITE)
+
+  # Clear screen
+  stdscr.nodelay(1)
+
   # Hide the cursor
   curses.curs_set(0)
 
@@ -108,6 +142,7 @@ def setup_screen(stdscr):
   stdscr.addstr(2, 0, 'Sunset:', curses.color_pair(SUNSET_COLOR))
   stdscr.addstr(3, 0, 'Camera status:', curses.color_pair(CAM_RUNNING_COLOR))
   stdscr.addstr(5, 0, '                PI INFO                 ', curses.color_pair(PI_HEADER_COLOR))
+
   stdscr.addstr(6, 0, 'Time:')
   stdscr.addstr(7, 0, 'Uptime:')
   stdscr.addstr(8, 0, 'Load:')
@@ -118,25 +153,15 @@ def setup_screen(stdscr):
   stdscr.addstr(13, 0, 'Case Humidity:')
   stdscr.addstr(14, 0, 'Wifi:')
 
+  stdscr.refresh()
 # Main function
 def main(stdscr):
   global ERROR
   keep_running = True
 
-  # Initialise colors
-  curses.init_pair(TIME_COLOR, 81, curses.COLOR_BLACK)
-  curses.init_pair(SUNRISE_COLOR, 226, curses.COLOR_BLACK)
-  curses.init_pair(SUNSET_COLOR, 172, curses.COLOR_BLACK)
-  curses.init_pair(CAM_RUNNING_COLOR, 82, curses.COLOR_BLACK)
-  curses.init_pair(CAM_NOT_RUNNING_COLOR, 249, curses.COLOR_BLACK)
-  curses.init_pair(PI_HEADER_COLOR, curses.COLOR_BLACK, curses.COLOR_WHITE)
-
-  # Clear screen
-  stdscr.nodelay(1)
   stdscr.clear()
 
   setup_screen(stdscr)
-  stdscr.refresh()
 
   timethread = threading.Thread(target=time_thread, args=[stdscr], daemon=True)
   timethread.start()
