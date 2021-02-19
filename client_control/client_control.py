@@ -1,5 +1,5 @@
 import traceback
-import threading
+from threading import Thread, Lock
 import curses
 import time
 import socket
@@ -27,6 +27,8 @@ PI_HEADER_COLOR = 6
 SUNRISE = None
 SUNSET = None
 
+mutex = Lock()
+
 def time_thread(stdscr):
   global SUNRISE
   global SUNSET
@@ -42,12 +44,16 @@ def time_thread(stdscr):
         SUNSET = s['sunset']
         last_sun_update = date.today()
 
+      mutex.acquire()
+      try:
+        stdscr.addstr(0, 17, time.strftime('%Y-%m-%d %H:%M:%S %Z'), curses.color_pair(TIME_COLOR))
+        stdscr.addstr(1, 28, SUNRISE.strftime('%H:%M:%S %Z'), curses.color_pair(SUNRISE_COLOR))
+        stdscr.addstr(2, 28, SUNSET.strftime('%H:%M:%S %Z'), curses.color_pair(SUNSET_COLOR))
 
-      stdscr.addstr(0, 17, time.strftime('%Y-%m-%d %H:%M:%S %Z'), curses.color_pair(TIME_COLOR))
-      stdscr.addstr(1, 28, SUNRISE.strftime('%H:%M:%S %Z'), curses.color_pair(SUNRISE_COLOR))
-      stdscr.addstr(2, 28, SUNSET.strftime('%H:%M:%S %Z'), curses.color_pair(SUNSET_COLOR))
+        stdscr.refresh()
+      finally:
+        mutex.release()
 
-      stdscr.refresh()
       time.sleep(1)
   except:
     global ERROR
@@ -67,40 +73,45 @@ def camera_control_thread(stdscr):
         elif status['active']:
           camera_command('stopcam')
 
-      if status is None:
-        stdscr.addstr(3, 33, 'Unknown')
-      elif status['active']:
-        stdscr.addstr(3, 33, 'Running', curses.color_pair(CAM_RUNNING_COLOR))
-      else:
-        stdscr.addstr(3, 29, 'Not Running', curses.color_pair(CAM_NOT_RUNNING_COLOR))
+      mutex.acquire()
+
+      try:
+        if status is None:
+          stdscr.addstr(3, 33, 'Unknown')
+        elif status['active']:
+          stdscr.addstr(3, 33, 'Running', curses.color_pair(CAM_RUNNING_COLOR))
+        else:
+          stdscr.addstr(3, 29, 'Not Running', curses.color_pair(CAM_NOT_RUNNING_COLOR))
 
 
-      if status is not None:
-        stdscr.addstr(6, 17, status['time'])
-        stdscr.addstr(7, 40 - len(status['uptime']), status['uptime'])
-        stdscr.addstr(8, 20, f'{status["load"][0]:6.2f} {status["load"][1]:6.2f} {status["load"][2]:6.2f}')
-        stdscr.addstr(9, 36, f'{status["cpu"]:>3}%')
+        if status is not None:
+          stdscr.addstr(6, 17, status['time'])
+          stdscr.addstr(7, 40 - len(status['uptime']), status['uptime'])
+          stdscr.addstr(8, 20, f'{status["load"][0]:6.2f} {status["load"][1]:6.2f} {status["load"][2]:6.2f}')
+          stdscr.addstr(9, 36, f'{status["cpu"]:>3}%')
 
-        memstr = f'{status["ram_used"]}/{status["ram_free"]}Mb'
-        stdscr.addstr(10, 40 - len(memstr), memstr)
+          memstr = f'{status["ram_used"]}/{status["ram_free"]}Mb'
+          stdscr.addstr(10, 40 - len(memstr), memstr)
 
-        cputempstr = f'{status["cpu_temp"]:5.1f}°C'
-        stdscr.addstr(11, 40 - len(cputempstr), cputempstr)
+          cputempstr = f'{status["cpu_temp"]:5.1f}°C'
+          stdscr.addstr(11, 40 - len(cputempstr), cputempstr)
 
-        casetempstr = '??.?°C'
-        if status['case_temp'] != -999:
-          casetempstr = f'{status["case_temp"]:8.1f}°C'
+          casetempstr = '??.?°C'
+          if status['case_temp'] != -999:
+            casetempstr = f'{status["case_temp"]:8.1f}°C'
 
-        stdscr.addstr(12, 40 - len(casetempstr), casetempstr)
+          stdscr.addstr(12, 40 - len(casetempstr), casetempstr)
 
-        casehumidstr = '??.?%'
-        if status['case_humidity'] != -999:
-          casehumidstr = f'{status["case_humidity"]:>8.1f}%'
+          casehumidstr = '??.?%'
+          if status['case_humidity'] != -999:
+            casehumidstr = f'{status["case_humidity"]:>8.1f}%'
 
-        stdscr.addstr(13, 40 - len(casehumidstr), casehumidstr)
+          stdscr.addstr(13, 40 - len(casehumidstr), casehumidstr)
 
-        wifistr = f'{status["wifi"][0]}%, {status["wifi"][1]}dBm'
-        stdscr.addstr(14, 40 - len(wifistr), wifistr)
+          wifistr = f'{status["wifi"][0]}%, {status["wifi"][1]}dBm'
+          stdscr.addstr(14, 40 - len(wifistr), wifistr)
+      finally:
+        mutex.release()
 
       time.sleep(calc_sleep_time(5))
 
@@ -163,10 +174,10 @@ def main(stdscr):
 
   setup_screen(stdscr)
 
-  timethread = threading.Thread(target=time_thread, args=[stdscr], daemon=True)
+  timethread = Thread(target=time_thread, args=[stdscr], daemon=True)
   timethread.start()
 
-  camcontrolthread = threading.Thread(target=camera_control_thread, args=[stdscr], daemon=True)
+  camcontrolthread = Thread(target=camera_control_thread, args=[stdscr], daemon=True)
   camcontrolthread.start()
 
   while keep_running:
