@@ -79,7 +79,7 @@ def camera_control_thread(stdscr):
         if status is None:
           stdscr.addstr(3, 33, 'Unknown')
         elif status['active']:
-          stdscr.addstr(3, 33, 'Running', curses.color_pair(CAM_RUNNING_COLOR))
+          stdscr.addstr(3, 29, '    Running', curses.color_pair(CAM_RUNNING_COLOR))
         else:
           stdscr.addstr(3, 29, 'Not Running', curses.color_pair(CAM_NOT_RUNNING_COLOR))
 
