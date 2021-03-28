@@ -12,6 +12,7 @@ from dateutil.tz import *
 
 LONGITUDE=5.417278
 LATITUDE=60.554981
+TIMEZONE='Europe/Oslo'
 STREAM_SERVER='weathercam'
 STREAM_SERVER_CONTROL_PORT=10570
 
@@ -35,7 +36,7 @@ def time_thread(stdscr):
   try:
     while True:
       last_sun_update = None
-      loc = LocationInfo(latitude=LATITUDE, longitude=LONGITUDE, timezone=time.strftime('%Z'))
+      loc = LocationInfo(latitude=LATITUDE, longitude=LONGITUDE, timezone=TIMEZONE)
 
       if last_sun_update is not date.today():
         # Calculate sunrise/sunset
@@ -46,9 +47,13 @@ def time_thread(stdscr):
 
       mutex.acquire()
       try:
-        stdscr.addstr(0, 17, time.strftime('%Y-%m-%d %H:%M:%S %Z'), curses.color_pair(TIME_COLOR))
-        stdscr.addstr(1, 28, SUNRISE.strftime('%H:%M:%S %Z'), curses.color_pair(SUNRISE_COLOR))
-        stdscr.addstr(2, 28, SUNSET.strftime('%H:%M:%S %Z'), curses.color_pair(SUNSET_COLOR))
+        current_time = time.strftime('%Y-%m-%d %H:%M:%S %Z')
+        sunrise_time = SUNRISE.strftime('%H:%M:%S %Z')
+        sunset_time = SUNSET.strftime('%H:%M:%S %Z')
+
+        stdscr.addstr(0, 40 - len(current_time), current_time, curses.color_pair(TIME_COLOR))
+        stdscr.addstr(1, 40 - len(sunrise_time), sunrise_time, curses.color_pair(SUNRISE_COLOR))
+        stdscr.addstr(2, 40 - len(sunset_time), sunset_time, curses.color_pair(SUNSET_COLOR))
 
         stdscr.refresh()
       finally:
@@ -85,7 +90,7 @@ def camera_control_thread(stdscr):
 
 
         if status is not None:
-          stdscr.addstr(6, 17, status['time'])
+          stdscr.addstr(6, 40 - len(status['time']), status['time'])
           stdscr.addstr(7, 40 - len(status['uptime']), status['uptime'])
           stdscr.addstr(8, 20, f'{status["load"][0]:6.2f} {status["load"][1]:6.2f} {status["load"][2]:6.2f}')
           stdscr.addstr(9, 36, f'{status["cpu"]:>3}%')
