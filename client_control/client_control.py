@@ -148,6 +148,8 @@ def setup_screen(stdscr):
   # Hide the cursor
   curses.curs_set(0)
 
+def draw_screen_base(stdscr):
+  stdscr.clear()
   stdscr.addstr(0, 0, 'Current time:', curses.color_pair(TIME_COLOR))
   stdscr.addstr(1, 0, 'Sunrise:', curses.color_pair(SUNRISE_COLOR))
   stdscr.addstr(2, 0, 'Sunset:', curses.color_pair(SUNSET_COLOR))
@@ -165,14 +167,15 @@ def setup_screen(stdscr):
   stdscr.addstr(14, 0, 'Wifi:')
 
   stdscr.refresh()
+
 # Main function
 def main(stdscr):
   global ERROR
   keep_running = True
 
   stdscr.clear()
-
   setup_screen(stdscr)
+  draw_screen_base(stdscr)
 
   timethread = Thread(target=time_thread, args=[stdscr], daemon=True)
   timethread.start()
@@ -190,6 +193,8 @@ def main(stdscr):
 
     if char == 'q' or  ERROR is not None:
       keep_running = False
+    elif char == 'r':
+      draw_screen_base(stdscr)
 
 
 curses.wrapper(main)
