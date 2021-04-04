@@ -8,6 +8,8 @@ verify_ssl = true
 [packages]
 astral = "*"
 python-dateutil = "*"
+toml = "*"
+requests = "*"
 
 [requires]
 python_version = "3.8"

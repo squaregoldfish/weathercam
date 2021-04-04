@@ -9,12 +9,15 @@ from datetime import datetime
 from astral import LocationInfo
 from astral.sun import sun
 from dateutil.tz import *
+import toml
+import os
+import requests
 
-LONGITUDE=5.417278
-LATITUDE=60.554981
-TIMEZONE='Europe/Oslo'
-STREAM_SERVER='weathercam'
-STREAM_SERVER_CONTROL_PORT=10570
+LONGITUDE = None
+LATITUDE = None
+TIMEZONE = None
+STREAM_SERVER = None
+STREAM_SERVER_CONTROL_PORT = None
 
 ERROR = None
 
@@ -27,6 +30,10 @@ PI_HEADER_COLOR = 6
 
 SUNRISE = None
 SUNSET = None
+
+CAMERA_RUNNING = False
+CAPTURE_URL = None
+IMAGE_DIR = None
 
 mutex = Lock()
 
@@ -66,6 +73,8 @@ def time_thread(stdscr):
 
 def camera_control_thread(stdscr):
   global ERROR
+  global CAMERA_RUNNING
+
   try:
     while True:
       status = camera_command('status')
@@ -85,9 +94,10 @@ def camera_control_thread(stdscr):
           stdscr.addstr(3, 33, 'Unknown')
         elif status['active']:
           stdscr.addstr(3, 29, '    Running', curses.color_pair(CAM_RUNNING_COLOR))
+          CAMERA_RUNNING = True
         else:
           stdscr.addstr(3, 29, 'Not Running', curses.color_pair(CAM_NOT_RUNNING_COLOR))
-
+          CAMERA_RUNNING = False
 
         if status is not None:
           stdscr.addstr(6, 40 - len(status['time']), status['time'])
@@ -123,6 +133,27 @@ def camera_control_thread(stdscr):
   except:
     ERROR = traceback.format_exc()
 
+def capture_thread(stdscr):
+  global ERROR
+
+  try:
+    while True:
+      time.sleep(calc_sleep_time(0))
+
+      if CAMERA_RUNNING:
+        capture_dir = os.path.join(IMAGE_DIR, time.strftime('%Y%m%d'))
+        if (not os.path.exists(capture_dir)):
+          os.mkdir(capture_dir)
+
+        filename = f'{time.strftime("%Y%m%d%H%M%S")}.jpg'
+        capture_file = os.path.join(capture_dir, filename)
+        with requests.get(CAPTURE_URL) as r:
+          open(capture_file, 'wb').write(r.content)
+          stdscr.addstr(17, 40 - len(filename), filename)
+  except:
+    ERROR = traceback.format_exc()
+
+
 def calc_sleep_time(target):
   current_seconds_digit = int(time.strftime('%S')) % 10
   if current_seconds_digit < target:
@@ -135,7 +166,6 @@ def camera_command(command):
     s.connect((STREAM_SERVER, STREAM_SERVER_CONTROL_PORT))
     s.sendall(bytes(command, 'utf-8'))
     return json.loads(s.recv(1024)) if command == 'status' else None
-
 
 # Set up the screen
 def setup_screen(stdscr):
@@ -171,12 +201,37 @@ def draw_screen_base(stdscr):
   stdscr.addstr(13, 0, 'Case Humidity:')
   stdscr.addstr(14, 0, 'Wifi:')
 
+  stdscr.addstr(16, 0, '                CAPTURE                 ', curses.color_pair(PI_HEADER_COLOR))
+  stdscr.addstr(17, 0, 'Last Capture:')
+
   stdscr.refresh()
+
+def load_config():
+  global LONGITUDE
+  global LATITUDE
+  global TIMEZONE
+  global STREAM_SERVER
+  global STREAM_SERVER_CONTROL_PORT
+  global CAPTURE_URL
+  global IMAGE_DIR
+
+  with open('config.toml', 'r') as f:
+    config = toml.load(f)
+
+  LONGITUDE = config['location']['lon']
+  LATITUDE = config['location']['lat']
+  TIMEZONE = config['location']['timezone']
+  STREAM_SERVER = config['pi']['server']
+  STREAM_SERVER_CONTROL_PORT = config['pi']['port']
+  CAPTURE_URL = config['capture']['url']
+  IMAGE_DIR = config['capture']['dir']
 
 # Main function
 def main(stdscr):
   global ERROR
   keep_running = True
+
+  load_config()
 
   stdscr.clear()
   setup_screen(stdscr)
@@ -187,6 +242,9 @@ def main(stdscr):
 
   camcontrolthread = Thread(target=camera_control_thread, args=[stdscr], daemon=True)
   camcontrolthread.start()
+
+  capturethread = Thread(target=capture_thread, args=[stdscr], daemon=True)
+  capturethread.start()
 
   while keep_running:
     time.sleep(0.1)
