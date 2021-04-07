@@ -136,11 +136,11 @@ def camera_control_thread(stdscr):
 def capture_thread(stdscr):
   global ERROR
 
-  try:
-    while True:
-      time.sleep(calc_sleep_time(0))
+  while True:
+    time.sleep(calc_sleep_time(0))
 
-      if CAMERA_RUNNING:
+    if CAMERA_RUNNING:
+      try:
         capture_dir = os.path.join(IMAGE_DIR, time.strftime('%Y%m%d'))
         if (not os.path.exists(capture_dir)):
           os.mkdir(capture_dir)
@@ -150,8 +150,8 @@ def capture_thread(stdscr):
         with requests.get(CAPTURE_URL) as r:
           open(capture_file, 'wb').write(r.content)
           stdscr.addstr(17, 40 - len(filename), filename)
-  except:
-    ERROR = traceback.format_exc()
+      except:
+        pass
 
 
 def calc_sleep_time(target):
@@ -162,10 +162,13 @@ def calc_sleep_time(target):
     return 10 - current_seconds_digit + target
 
 def camera_command(command):
-  with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.connect((STREAM_SERVER, STREAM_SERVER_CONTROL_PORT))
-    s.sendall(bytes(command, 'utf-8'))
-    return json.loads(s.recv(1024)) if command == 'status' else None
+  try:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+      s.connect((STREAM_SERVER, STREAM_SERVER_CONTROL_PORT))
+      s.sendall(bytes(command, 'utf-8'))
+      return json.loads(s.recv(1024)) if command == 'status' else None
+  except:
+    pass
 
 # Set up the screen
 def setup_screen(stdscr):
