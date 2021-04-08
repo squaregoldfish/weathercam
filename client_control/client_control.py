@@ -78,14 +78,14 @@ def camera_control_thread(stdscr):
   try:
     while True:
       status = camera_command('status')
-
-      if SUNRISE is not None:
-        now = datetime.now(tzlocal())
-        if now >= SUNRISE and now < SUNSET:
-          if not status['active']:
-            camera_command('startcam')
-        elif status['active']:
-          camera_command('stopcam')
+      if status is not None:
+        if SUNRISE is not None:
+          now = datetime.now(tzlocal())
+          if now >= SUNRISE and now < SUNSET:
+            if not status['active']:
+              camera_command('startcam')
+          elif status['active']:
+            camera_command('stopcam')
 
       mutex.acquire()
 
