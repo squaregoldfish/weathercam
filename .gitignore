@@ -132,3 +132,5 @@ dmypy.json
 **/nohup.out
 
 config.toml
+
+video/*mp4
