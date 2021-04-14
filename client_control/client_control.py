@@ -6,6 +6,7 @@ import socket
 import json
 from datetime import date
 from datetime import datetime
+from datetime import timedelta
 from astral import LocationInfo
 from astral.sun import sun
 from dateutil.tz import *
@@ -81,7 +82,12 @@ def camera_control_thread(stdscr):
       if status is not None:
         if SUNRISE is not None:
           now = datetime.now(tzlocal())
-          if now >= SUNRISE and now < SUNSET:
+          hour = timedelta(hours=1)
+
+          day_start = SUNRISE - hour
+          day_end = SUNSET + hour
+
+          if now >= day_start and now < day_end:
             if not status['active']:
               camera_command('startcam')
           elif status['active']:
