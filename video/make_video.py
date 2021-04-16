@@ -1,24 +1,58 @@
 import sys
 import os
-import cv2
+import tempfile
+import contextlib
+import shutil
+from ffmpy import FFmpeg
 
-image_dir = sys.argv[1]
+"""
+Main function
+"""
+def main(image_dir):
 
-if not os.path.isdir(image_dir):
-  print('Must supply a directory')
+  # Work with a temporary directory
+  with make_temp_directory() as tmpdir:
+
+    # Get all the jpg files in the folder
+    image_list = (f for f in sorted(os.listdir(image_dir)) if f.endswith('.jpg'))
+
+    last_image = None
+    image_count = 0
+    for img_file in image_list:
+      image_count += 1
+      last_image = img_file
+      shutil.copy(os.path.join(image_dir, img_file), \
+        os.path.join(tmpdir, f'{image_count:05d}.jpg'))
+
+    ff = FFmpeg(
+      inputs={f'{os.path.join(tmpdir, "%5d.jpg")}': None},
+      outputs={f'{image_dir}.mp4': None}
+    )
+
+    ff.run()
+
+@contextlib.contextmanager
+def make_temp_directory():
+  temp_dir = tempfile.mkdtemp()
+  try:
+    yield temp_dir
+  finally:
+    pass
+    #shutil.rmtree(temp_dir)
+
+# Print usage message and quits
+def usage():
+  print('Usage: make_video <image_dir>')
   exit()
 
-image_list = sorted(os.listdir(image_dir))
+# Script run
+if __name__ == '__main__':
+  if len(sys.argv) < 2:
+    usage()
 
-# Get image info
-frame = cv2.imread(os.path.join(image_dir, image_list[0]))
-height, width, layers = frame.shape
+  image_dir = sys.argv[-1]
+  if not os.path.isdir(image_dir):
+    print(f'{image_dir} is not a directory')
+    exit()
 
-fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-video = cv2.VideoWriter(f'{image_dir}.mp4', fourcc, 25, (width, height))
-
-for image in image_list:
-  video.write(cv2.imread(os.path.join(image_dir, image)))
-
-cv2.destroyAllWindows()
-video.release()
+  main(os.path.dirname(image_dir))

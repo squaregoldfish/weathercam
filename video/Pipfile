@@ -7,6 +7,9 @@ verify_ssl = true
 
 [packages]
 opencv-python = "*"
+pipenv = "*"
+install = "*"
+ffmpy = "*"
 
 [requires]
 python_version = "3.8"
