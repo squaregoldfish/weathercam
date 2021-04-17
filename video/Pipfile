@@ -6,10 +6,11 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-opencv-python = "*"
 pipenv = "*"
 install = "*"
 ffmpy = "*"
+pillow = "*"
+toml = "*"
 
 [requires]
 python_version = "3.8"
