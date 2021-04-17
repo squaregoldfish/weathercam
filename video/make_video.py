@@ -19,7 +19,13 @@ def main(config, image_dir):
   with make_temp_directory() as tmpdir:
 
     # Get all the jpg files in the folder
-    image_list = list(f for f in sorted(os.listdir(image_dir)) if f.endswith('.jpg'))
+    start_image = f'{os.path.basename(image_dir)}{config["range"]["start"]}00.jpg'
+    end_image = f'{os.path.basename(image_dir)}{config["range"]["end"]}59.jpg'
+
+    image_list = list(f for f in sorted(os.listdir(image_dir)) \
+      if f >= start_image and f <= end_image)
+
+
     image_indices = range(0, len(image_list))
 
     pool = Pool()
@@ -69,8 +75,30 @@ def make_temp_directory():
 
 # Print usage message and quits
 def usage():
-  print('Usage: make_video [-small] [-timestamp] <image_dir>')
+  print('Usage: make_video [-small] [-timestamp] [-start hhmm] [-end hhmm] <image_dir>')
   exit()
+
+def check_time(hhmm):
+
+  ok = True
+
+  if len(hhmm) != 4:
+    ok = False
+
+  if ok:
+    hours = int(hhmm[0:2])
+    if hours < 0 or hours > 23:
+      ok = False
+
+
+  if ok:
+    minutes = int(hhmm[2:4])
+    if minutes < 0 or minutes > 59:
+      ok = False
+
+  if not ok:
+    print(f'Invalid time \'{hhmm}\'')
+  return ok
 
 # Script run
 if __name__ == '__main__':
@@ -87,6 +115,10 @@ if __name__ == '__main__':
     'small': False,
     'timestamp': False
   }
+  config['range'] =  {
+    'start': '0000',
+    'end': '2359'
+  }
 
   argindex = 1
   while argindex < len(sys.argv) - 1:
@@ -98,7 +130,25 @@ if __name__ == '__main__':
     elif arg == '-timestamp':
       config['commandline']['timestamp'] = True
       argindex += 1
+    elif arg == '-start':
+      time = sys.argv[argindex + 1]
+      if check_time(time):
+        config['range']['start'] = time
+      else:
+        usage()
+      argindex += 2
+    elif arg == '-end':
+      time = sys.argv[argindex + 1]
+      if check_time(time):
+        config['range']['end'] = time
+      else:
+        usage()
+      argindex += 2
     else:
       usage()
 
-  main(config, os.path.dirname(image_dir))
+  if config['range']['start'] >= config['range']['end']:
+    print(f'Start must be before end')
+    exit()
+
+  main(config, os.path.dirname(f'{image_dir}/'))
