@@ -43,25 +43,28 @@ def main(config, image_dir):
 
 def process_image(config, indir, outdir, file, index):
 
-  img = Image.open(os.path.join(indir, file))
-  id = ImageDraw.Draw(img)
+  try:
+    img = Image.open(os.path.join(indir, file))
+    id = ImageDraw.Draw(img)
 
-  if config['commandline']['timestamp']:
-    fillFont = ImageFont.truetype(config['main']['timestamp_font'], 30)
-    shadowFont = ImageFont.truetype(config['main']['timestamp_font'], 30)
+    if config['commandline']['timestamp']:
+      fillFont = ImageFont.truetype(config['main']['timestamp_font'], 30)
+      shadowFont = ImageFont.truetype(config['main']['timestamp_font'], 30)
 
-    timeText=f'{file[8:10]}:{file[10:12]}'
+      timeText=f'{file[8:10]}:{file[10:12]}'
 
-    xpos = img.size[0] - 117
-    ypos = img.size[1] - 40
+      xpos = img.size[0] - 117
+      ypos = img.size[1] - 40
 
-    id.text((xpos + 3, ypos + 3), timeText, font=shadowFont, fill=(0, 0, 0))
-    id.text((xpos, ypos), timeText, font=fillFont, fill=(255, 255, 255))
+      id.text((xpos + 3, ypos + 3), timeText, font=shadowFont, fill=(0, 0, 0))
+      id.text((xpos, ypos), timeText, font=fillFont, fill=(255, 255, 255))
 
-  if config['commandline']['small']:
-    img = img.resize((1280,720))
+    if config['commandline']['small']:
+      img = img.resize((1280,720))
 
-  img.save(os.path.join(outdir, f'{index:05d}.jpg'))
+    img.save(os.path.join(outdir, f'{index:05d}.jpg'))
+  except:
+    pass
 
 
 @contextlib.contextmanager
