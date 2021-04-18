@@ -25,7 +25,6 @@ def main(config, image_dir):
     image_list = list(f for f in sorted(os.listdir(image_dir)) \
       if f >= start_image and f <= end_image)
 
-
     image_indices = range(0, len(image_list))
 
     pool = Pool()
@@ -37,7 +36,7 @@ def main(config, image_dir):
     ff = FFmpeg(
       global_options='-y',
       inputs={f'{os.path.join(tmpdir, "%5d.jpg")}': None},
-      outputs={f'{image_dir}.mp4': None}
+      outputs={f'{image_dir}.mp4': '-c:v libx264 -profile:v high -pix_fmt yuv420p -g 25 -r 25'}
     )
 
     ff.run()
