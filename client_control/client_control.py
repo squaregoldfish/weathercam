@@ -79,19 +79,22 @@ def camera_control_thread(stdscr):
   try:
     while True:
       status = camera_command('status')
-      if status is not None:
-        if SUNRISE is not None:
-          now = datetime.now(tzlocal())
-          hour = timedelta(hours=1)
+      if not status['active']:
+        camera_command('startcam')
 
-          day_start = SUNRISE - hour
-          day_end = SUNSET + hour
+      # if status is not None:
+      #   if SUNRISE is not None:
+      #     now = datetime.now(tzlocal())
+      #     hour = timedelta(hours=1)
 
-          if now >= day_start and now < day_end:
-            if not status['active']:
-              camera_command('startcam')
-          elif status['active']:
-            camera_command('stopcam')
+      #     day_start = SUNRISE - hour
+      #     day_end = SUNSET + hour
+
+      #     if now >= day_start and now < day_end:
+      #       if not status['active']:
+      #         camera_command('startcam')
+      #     elif status['active']:
+      #       camera_command('stopcam')
 
       mutex.acquire()
 
@@ -144,7 +147,6 @@ def capture_thread(stdscr):
 
   while True:
     time.sleep(calc_sleep_time(0))
-
     if CAMERA_RUNNING:
       try:
         capture_dir = os.path.join(IMAGE_DIR, time.strftime('%Y%m%d'))
@@ -155,10 +157,9 @@ def capture_thread(stdscr):
         capture_file = os.path.join(capture_dir, filename)
         with requests.get(CAPTURE_URL) as r:
           open(capture_file, 'wb').write(r.content)
-          stdscr.addstr(17, 40 - len(filename), filename)
+          stdscr.addstr(17, 40 - len(filename), f'{filename}')
       except:
-        pass
-
+        stdscr.addstr(20, 0, f'{traceback.format_exc()}')
 
 def calc_sleep_time(target):
   current_seconds_digit = int(time.strftime('%S')) % 10
