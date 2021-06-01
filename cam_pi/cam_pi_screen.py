@@ -69,7 +69,7 @@ def draw_screen():
 
   # Humidity
   humidity = cam_status.case_humidity()
-  humiditystr = ' ??.?°C' if humidity == -999 else f'{humidity:5.1f}°C'
+  humiditystr = ' ??.?%' if humidity == -999 else f'{humidity:5.1f}%'
   humidity_surface = font.render(humiditystr, True, (83, 164, 202))
   screen.blit(humidity_icon, (0, 181))
   screen.blit(humidity_surface, (33, 177))
