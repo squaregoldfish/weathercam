@@ -13,6 +13,10 @@ from dateutil.tz import *
 import toml
 import os
 import requests
+import re
+import subprocess
+
+MIN_QUALITY = 90
 
 LONGITUDE = None
 LATITUDE = None
@@ -157,9 +161,34 @@ def capture_thread(stdscr):
         capture_file = os.path.join(capture_dir, filename)
         with requests.get(CAPTURE_URL) as r:
           open(capture_file, 'wb').write(r.content)
+
+          # Make sure the captured image is OK
+          check_image(capture_file)
+
           stdscr.addstr(17, 40 - len(filename), f'{filename}')
       except:
         stdscr.addstr(20, 0, f'{traceback.format_exc()}')
+
+# Check a captured image and restart the camera if it's of poor quality
+def check_image(filename):
+  quality = 0
+
+  # Run ImageMagick identify and get the Quality line if it's there
+  identify = subprocess.Popen(('identify', '-verbose', filename),
+    stdout=subprocess.PIPE)
+  quality_line = subprocess.run(('grep', 'Quality'),
+    stdin=identify.stdout, stdout=subprocess.PIPE).stdout.decode('utf-8')
+
+  quality_re = re.compile('.*Quality: ([0-9]+)')
+  quality_match = quality_re.match(quality_line)
+
+  if quality_match:
+    quality = int(quality_match.group(1))
+
+  if quality < MIN_QUALITY:
+    camera_command('stopcam')
+    time.sleep(5)
+    camera_command('startcam')
 
 def calc_sleep_time(target):
   current_seconds_digit = int(time.strftime('%S')) % 10
@@ -268,6 +297,10 @@ def main(stdscr):
       keep_running = False
     elif char == 'r':
       draw_screen_base(stdscr)
+    elif char == 'c':
+      # Restart the camera
+      camera_command('stopcam')
+
 
 
 curses.wrapper(main)
