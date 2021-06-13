@@ -173,17 +173,22 @@ def capture_thread(stdscr):
 def check_image(filename):
   quality = 0
 
-  # Run ImageMagick identify and get the Quality line if it's there
-  identify = subprocess.Popen(('identify', '-verbose', filename),
-    stdout=subprocess.PIPE)
-  quality_line = subprocess.run(('grep', 'Quality'),
-    stdin=identify.stdout, stdout=subprocess.PIPE).stdout.decode('utf-8')
+  try:
+    # Run ImageMagick identify and get the Quality line if it's there
+    identify = subprocess.Popen(('identify', '-verbose', filename),
+      stdout=subprocess.PIPE)
 
-  quality_re = re.compile('.*Quality: ([0-9]+)')
-  quality_match = quality_re.match(quality_line)
 
-  if quality_match:
-    quality = int(quality_match.group(1))
+    quality_line = subprocess.run(('grep', 'Quality'),
+      stdin=identify.stdout, stdout=subprocess.PIPE).stdout.decode('utf-8')
+
+    quality_re = re.compile('.*Quality: ([0-9]+)')
+    quality_match = quality_re.match(quality_line)
+
+    if quality_match:
+      quality = int(quality_match.group(1))
+  except:
+    pass # Quality remains zero so the camera gets restarted
 
   if quality < MIN_QUALITY:
     camera_command('stopcam')
