@@ -50,18 +50,18 @@ def time_thread(stdscr):
       last_sun_update = None
       loc = LocationInfo(latitude=LATITUDE, longitude=LONGITUDE, timezone=TIMEZONE)
 
-      if last_sun_update is not date.today():
-        # Calculate sunrise/sunset
-        s = sun(loc.observer, date=date.today(), tzinfo=loc.timezone)
-        SUNRISE = s['sunrise']
-        SUNSET = s['sunset']
-        last_sun_update = date.today()
+      #if last_sun_update is not date.today():
+      #  # Calculate sunrise/sunset
+      #  s = sun(loc.observer, date=date.today(), tzinfo=loc.timezone)
+      #  SUNRISE = s['sunrise']
+      #  SUNSET = s['sunset']
+      #  last_sun_update = date.today()
 
       mutex.acquire()
       try:
         current_time = time.strftime('%Y-%m-%d %H:%M:%S %Z')
-        sunrise_time = SUNRISE.strftime('%H:%M:%S %Z')
-        sunset_time = SUNSET.strftime('%H:%M:%S %Z')
+        sunrise_time = '--' if SUNRISE is None else SUNRISE.strftime('%H:%M:%S %Z')
+        sunset_time = '--' if SUNSET is None else SUNSET.strftime('%H:%M:%S %Z')
 
         stdscr.addstr(0, 40 - len(current_time), current_time, curses.color_pair(TIME_COLOR))
         stdscr.addstr(1, 40 - len(sunrise_time), sunrise_time, curses.color_pair(SUNRISE_COLOR))
