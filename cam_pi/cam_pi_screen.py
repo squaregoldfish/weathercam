@@ -42,13 +42,20 @@ def draw_screen():
   # Load Average
   load = cam_status.load_avg()
   load1_surface = font.render(f'{load[0]:5.2f}', True, (255, 255, 0))
-  load5_surface = font.render(f'{load[1]:5.2f}', True, (180, 180, 0))
-  load15_surface = font.render(f'{load[2]:5.2f}', True, (140, 140, 0))
+  #load5_surface = font.render(f'{load[1]:5.2f}', True, (180, 180, 0))
+  #load15_surface = font.render(f'{load[2]:5.2f}', True, (140, 140, 0))
 
   screen.blit(heartbeat_icon, (0, 72))
   screen.blit(load1_surface, (33, 68))
-  screen.blit(load5_surface, (136, 68))
-  screen.blit(load15_surface, (238, 68))
+  #screen.blit(load5_surface, (136, 68))
+  #screen.blit(load15_surface, (238, 68))
+
+  # Disk space
+  space = cam_status.disk_space()
+  diskspace_surface = font.render(f'{space:7.2f}Gb', True, (0, 128, 0))
+
+  screen.blit(sd_icon, (136, 72))
+  screen.blit(diskspace_surface, (170, 72))
 
   # CPU Usage
   cpu_usage_surface = font.render(f'{cam_status.cpu():>3}%', True, (74, 200, 46))
@@ -132,6 +139,7 @@ humidity_icon = pygame.image.load('humidity.png')
 wifi_icon = pygame.image.load('wifi.png')
 camera_icon = pygame.image.load('camera.png')
 disabled_camera_icon = pygame.image.load('camera_disabled.png')
+sd_icon = pygame.image.load('sd.png')
 
 divider = pygame.Surface((320, 2))
 pygame.draw.line(divider, (30, 102, 96), (0, 0), (320, 0), 2)

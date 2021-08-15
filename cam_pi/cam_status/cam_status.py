@@ -8,6 +8,7 @@ import os
 import psutil
 import subprocess
 import re
+import shutil
 
 def time_string(include_timezone):
   if include_timezone:
@@ -85,3 +86,6 @@ def wifi():
 def camera_active():
   streamer = subprocess.run(['pgrep', 'mjpg_streamer'], stdout=subprocess.PIPE).stdout.decode('utf-8')
   return True if len(streamer) > 0 else False
+
+def disk_space():
+  return shutil.disk_usage('/').free / 1073742000
