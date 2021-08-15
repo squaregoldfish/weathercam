@@ -131,6 +131,6 @@ dmypy.json
 **/*.swp
 **/nohup.out
 
-config.toml
+**/config.toml
 
 video/*mp4
