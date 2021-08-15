@@ -99,9 +99,8 @@ def capture_thread():
         ERROR = traceback.format_exc()
 
 # Check a captured image and restart the camera if it's of poor quality
-  irint(filename)
 def check_image(filename):
-  quality = 100
+  quality = 0
 
   try:
     identify = subprocess.Popen(('identify', '-verbose', filename),
