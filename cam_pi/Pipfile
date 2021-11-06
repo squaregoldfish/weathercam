@@ -10,6 +10,7 @@ uptime = "*"
 gpiozero = "*"
 psutil = "*"
 adafruit-circuitpython-am2320 = "*"
+requests = "*"
 
 [dev-packages]
 

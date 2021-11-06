@@ -6,27 +6,59 @@ import time
 import pygame
 from gpiozero import Button
 from cam_status import cam_status
+from pitft_touchscreen import pitft_touchscreen
+import io
+import requests
 
 FONT = '/root/TerminusTTF-4.47.0.ttf'
+CAPTURE_URL = 'http://localhost:8080?action=snapshot'
 
 KEEP_RUNNING = True
+IMAGE_MODE = False
 
-def screen_thread():
+def screen_thread(touch_screen):
   global KEEP_RUNNING
   while KEEP_RUNNING:
-    if door_button.is_active:
-      backlight(0)
-      screen.fill((0,0,0))
-      pygame.display.flip()
-    else:
-      backlight(1)
-      draw_screen()
+    if not IMAGE_MODE:
+      if door_button.is_active:
+        backlight(0)
+        screen.fill((0,0,0))
+        pygame.display.flip()
+      else:
+        backlight(1)
+        draw_screen()
 
-    time.sleep(0.75)
+    # See if we have been touched
+    if touch_screen.has_event():
+      show_image(screen)
+      touch_screen.clear_event()
+
+    time.sleep(0.9)
 
   # Make sure the screen is on
   backlight(1)
 
+def show_image(screen):
+  global IMAGE_MODE
+
+  if IMAGE_MODE:
+    IMAGE_MODE = False
+  else:
+    IMAGE_MODE = True
+
+    if not cam_status.camera_active():
+      screen.fill((0,0,0))
+      surface = font.render("Camera not running", True, (255,0,0))
+      screen.blit(surface, (7, 100))
+    else:
+      with requests.get(CAPTURE_URL) as r:
+        img_file = io.BytesIO(r.content)
+        img = pygame.image.load(img_file)
+        img = pygame.transform.scale(img, (320, 240))
+        screen.blit(img, (0,0))
+
+    pygame.display.flip()
+  
 def draw_screen():
   screen.fill((0,0,0))
 
@@ -146,5 +178,8 @@ pygame.draw.line(divider, (30, 102, 96), (0, 0), (320, 0), 2)
 
 door_button = Button(22)
 
-screenthread = threading.Thread(target=screen_thread)
+touch_screen = pitft_touchscreen()
+touch_screen.start()
+
+screenthread = threading.Thread(target=screen_thread, args=[touch_screen])
 screenthread.start()
