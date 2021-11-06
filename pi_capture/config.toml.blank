@@ -1,0 +1,12 @@
+[location]
+lon=
+lat=
+timezone=
+
+[capture]
+url=
+dir=
+
+[pi]
+server=
+port=

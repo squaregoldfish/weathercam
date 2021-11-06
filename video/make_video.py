@@ -63,7 +63,8 @@ def process_image(config, indir, outdir, file, index):
       img = img.resize((1280,720))
 
     img.save(os.path.join(outdir, f'{index:05d}.jpg'))
-  except:
+  except Exception as e:
+    print(e)
     pass
 
 
