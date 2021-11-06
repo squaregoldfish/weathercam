@@ -4,13 +4,14 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-pygame = "*"
 "rpi.gpio" = "*"
 uptime = "*"
 gpiozero = "*"
 psutil = "*"
 adafruit-circuitpython-am2320 = "*"
 requests = "*"
+pygame = "~=1.9.6"
+evdev = "*"
 
 [dev-packages]
 

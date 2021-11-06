@@ -24,7 +24,7 @@ case "$1" in
                 else
                   cd /root/weathercam/cam_pi
                   pipenv run python cam_pi_screen.py &
-                  sleep 35
+                  sleep 10
                   f_message "cam_pi_screen started"
                 fi
                 ;;

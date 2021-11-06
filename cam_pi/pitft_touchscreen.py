@@ -6,12 +6,7 @@
 # I'm not interested in a queue of events - just that an event happens
 
 import os
-
-try:
-    import evdev
-except ImportError:
-    print("Evdev package is not installed.  Run 'pip3 install evdev' or 'pip install evdev' (Python 2.7) to install.")
-    raise(ImportError("Evdev package not found."))
+import evdev
 import threading
 
 # Class for handling events from piTFT
