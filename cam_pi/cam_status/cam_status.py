@@ -42,7 +42,9 @@ def ram_used():
 
 def ram_free():
   meminfo = psutil.virtual_memory()
-  return round(meminfo.free / (1024 * 1024))
+  free = round(meminfo.free / (1024 * 1024))
+  cached = round(meminfo.cached / (1024 * 1024))
+  return free + cached
 
 def cpu_temp():
   return cputemp.temperature
