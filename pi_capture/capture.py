@@ -15,6 +15,7 @@ import requests
 import re
 import subprocess
 
+CAPTURE_INTERVAL = 5
 MIN_QUALITY = 90
 
 LONGITUDE = None
@@ -81,10 +82,10 @@ def capture_thread():
 
   while True:
     time.sleep(0.5)
-    if int(time.time() % 10) == 0 and CAMERA_RUNNING:
+    if int(time.time() % CAPTURE_INTERVAL) == 0 and CAMERA_RUNNING:
       try:
         capture_dir = os.path.join(IMAGE_DIR, time.strftime('%Y%m%d'))
-        if (not os.path.exists(capture_dir)):
+        if not os.path.exists(capture_dir):
           os.mkdir(capture_dir)
 
         filename = f'{time.strftime("%Y%m%d%H%M%S")}.jpg'
