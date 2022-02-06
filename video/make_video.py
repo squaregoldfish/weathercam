@@ -25,6 +25,7 @@ def main(conf, image_dir):
         end_image = f'{os.path.basename(image_dir)}{conf["range"]["end"]}59.jpg'
 
         image_list = list(f for f in sorted(os.listdir(image_dir)) if start_image <= f <= end_image)
+        image_list = image_list[0::config['commandline']['step']]
 
         image_indices = range(0, len(image_list))
 
@@ -114,12 +115,14 @@ if __name__ == '__main__':
         'start': '0000',
         'end': '2359'
     }
+    config['commandline']['step'] = 1
 
     parser = argparse.ArgumentParser(description='Make video from captured images')
     parser.add_argument('-small', action='store_true', help='Generate a 720p video')
     parser.add_argument('-timestamp', action='store_true', help='Add a timestamp to the video')
     parser.add_argument('-start', dest='start', help='Start time (hhmm)')
     parser.add_argument('-end', dest='end', help='End time (hhmm)')
+    parser.add_argument('-step', dest='step', type=int, help='Use every n steps')
     parser.add_argument('img_dir')
 
     args = parser.parse_args()
@@ -143,5 +146,8 @@ if __name__ == '__main__':
     if config['range']['start'] >= config['range']['end']:
         print(f'Start must be before end')
         exit()
+
+    if args.step is not None:
+        config['commandline']['step'] = args.step
 
     main(config, os.path.dirname(f'{args.img_dir}/'))
