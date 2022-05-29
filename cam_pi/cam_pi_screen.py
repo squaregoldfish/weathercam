@@ -4,7 +4,6 @@ import os
 import threading
 import time
 import pygame
-from gpiozero import Button
 from cam_status import cam_status
 from pitft_touchscreen import pitft_touchscreen
 import io
@@ -20,7 +19,7 @@ def screen_thread(touch_screen):
   global KEEP_RUNNING
   while KEEP_RUNNING:
     if not IMAGE_MODE:
-      if door_button.is_active:
+      if False:
         backlight(0)
         screen.fill((0,0,0))
         pygame.display.flip()
@@ -175,8 +174,6 @@ sd_icon = pygame.image.load('sd.png')
 
 divider = pygame.Surface((320, 2))
 pygame.draw.line(divider, (30, 102, 96), (0, 0), (320, 0), 2)
-
-door_button = Button(22)
 
 touch_screen = pitft_touchscreen()
 touch_screen.start()
