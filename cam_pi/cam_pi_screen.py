@@ -8,34 +8,31 @@ from cam_status import cam_status
 from pitft_touchscreen import pitft_touchscreen
 import io
 import requests
+from gpiozero import MotionSensor
+from datetime import datetime
 
 FONT = '/root/TerminusTTF-4.47.0.ttf'
 CAPTURE_URL = 'http://localhost:8080?action=snapshot'
 
 KEEP_RUNNING = True
 IMAGE_MODE = False
+SHOW_SCREEN = True
+SHOW_SCREEN_TIME = datetime.now()
+SCREEN_TIMEOUT = 10
 
 def screen_thread(touch_screen):
   global KEEP_RUNNING
   while KEEP_RUNNING:
-    if not IMAGE_MODE:
-      if False:
-        backlight(0)
-        screen.fill((0,0,0))
-        pygame.display.flip()
+    if SHOW_SCREEN:
+      # See if we have been touched
+      if touch_screen.has_event():
+        show_image(screen)
+        touch_screen.clear_event()
       else:
-        backlight(1)
-        draw_screen()
-
-    # See if we have been touched
-    if touch_screen.has_event():
-      show_image(screen)
-      touch_screen.clear_event()
+        if not IMAGE_MODE:
+          draw_screen()
 
     time.sleep(0.9)
-
-  # Make sure the screen is on
-  backlight(1)
 
 def show_image(screen):
   global IMAGE_MODE
@@ -141,11 +138,42 @@ def receiveSignal(signalNumber, frame):
   global KEEP_RUNNING
   KEEP_RUNNING = False
 
+# Screen on/off thread
+def screen_off_thread():
+  global SHOW_SCREEN
+  global SHOW_SCREEN_TIME
+  global SCREEN_TIMEOUT
+
+  while True:
+    if SHOW_SCREEN:
+      diff = (datetime.now() - SHOW_SCREEN_TIME).seconds
+      if diff > SCREEN_TIMEOUT:
+        SHOW_SCREEN = False
+        screen.fill((0,0,0))
+        pygame.display.flip()
+        backlight(0)
+
+    time.sleep(10)
+
+
+def motion_trigger():
+  global SHOW_SCREEN
+  global SHOW_SCREEN_TIME
+  global IMAGE_MODE
+
+  IMAGE_MODE = False
+  SHOW_SCREEN = True
+  SHOW_SCREEN_TIME = datetime.now()  
+  backlight(1)
+
 ############################################
 ##
 ## Here we go
+
+# Handle signals
 signal.signal(signal.SIGTERM, receiveSignal)
 
+# Init screen
 os.putenv('SDF_VIDEODRIVER', 'fbcon')
 os.putenv('SDL_FBDEV', '/dev/fb1')
 os.putenv('SDL_MOUSEDRV', 'TSLIB')
@@ -180,3 +208,11 @@ touch_screen.start()
 
 screenthread = threading.Thread(target=screen_thread, args=[touch_screen])
 screenthread.start()
+
+scroffthread = threading.Thread(target=screen_off_thread)
+scroffthread.start()
+
+# Motion Sensor
+pir = MotionSensor(14)
+pir.when_motion = motion_trigger
+
