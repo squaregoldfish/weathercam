@@ -9,6 +9,7 @@ verify_ssl = true
 ffmpy = "*"
 pillow = "*"
 toml = "*"
+opencv-python = "*"
 
 [requires]
 python_version = "3"

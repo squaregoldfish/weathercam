@@ -134,5 +134,8 @@ dmypy.json
 **/config.toml
 
 video/*mp4
+video/**/*jpg
 
 .idea
+**/.vscode
+
