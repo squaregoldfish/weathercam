@@ -152,7 +152,7 @@ def screen_off_thread():
         screen.fill((0,0,0))
         pygame.display.flip()
         backlight(0)
-
+  
     time.sleep(10)
 
 
@@ -209,10 +209,12 @@ touch_screen.start()
 screenthread = threading.Thread(target=screen_thread, args=[touch_screen])
 screenthread.start()
 
-scroffthread = threading.Thread(target=screen_off_thread)
-scroffthread.start()
+#scroffthread = threading.Thread(target=screen_off_thread)
+#scroffthread.start()
 
 # Motion Sensor
-pir = MotionSensor(14)
-pir.when_motion = motion_trigger
+#pir = MotionSensor(14)
+#pir.when_motion = motion_trigger
+
+motion_trigger()
 
