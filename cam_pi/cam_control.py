@@ -11,7 +11,7 @@ from cam_status import cam_status
 
 LOG_FILE='/var/log/cam_control.log'
 PORT=10570
-MJPG_STREAMER_CMD = 'mjpg_streamer -b -i "input_uvc.so -f 5 -r 1920x1080 -q 98" -o "output_http.so -w /usr/local/share/mjpg-streamer/www"'
+MJPG_STREAMER_CMD = 'mjpg_streamer -b -i "input_uvc.so -f 1 -r 1920x1080 -q 98" -o "output_http.so -w /usr/local/share/mjpg-streamer/www"'
 
 def process_command(command, logger):
   result = None
