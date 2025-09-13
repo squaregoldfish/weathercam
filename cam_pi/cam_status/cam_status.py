@@ -85,6 +85,23 @@ def wifi():
   quality_percent = (quality / max_quality) * 100
   return (round(quality_percent), signal)
 
+def net_up(last):
+  output = ''
+
+  sent = psutil.net_io_counters().bytes_sent
+  if last == -1:
+    output = '...'
+  else:
+    diff = float(sent - last)
+
+    for unit in ['', 'k', 'm', 'g', 't', 'p']:
+      if diff < 1024:
+        output = f"{diff:6.2f} {unit}b"
+        break
+      diff /= 1024
+
+  return (output, sent)
+
 def camera_active():
   streamer = subprocess.run(['pgrep', 'mjpg_streamer'], stdout=subprocess.PIPE).stdout.decode('utf-8')
   return True if len(streamer) > 0 else False

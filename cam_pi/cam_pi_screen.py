@@ -20,6 +20,8 @@ SHOW_SCREEN = True
 SHOW_SCREEN_TIME = datetime.now()
 SCREEN_TIMEOUT = 10
 
+LAST_NET = -1
+
 def screen_thread(touch_screen):
   global KEEP_RUNNING
   while KEEP_RUNNING:
@@ -56,6 +58,8 @@ def show_image(screen):
     pygame.display.flip()
   
 def draw_screen():
+  global LAST_NET
+
   screen.fill((0,0,0))
 
   # Current Time
@@ -115,11 +119,19 @@ def draw_screen():
   screen.blit(cpu_temp_surface, (203, 141))
 
   # Wifi
-  wifi = cam_status.wifi()
-  wifistr = f'{wifi[0]:>3}% {wifi[1]}dBm'
-  wifi_surface = font.render(wifistr, True, (153, 51, 255))
-  screen.blit(wifi_icon, (0, 214))
-  screen.blit(wifi_surface, (33, 210))
+  #wifi = cam_status.wifi()
+  #wifistr = f'{wifi[0]:>3}% {wifi[1]}dBm'
+  #wifi_surface = font.render(wifistr, True, (153, 51, 255))
+  #screen.blit(wifi_icon, (0, 214))
+  #screen.blit(wifi_surface, (33, 210))
+
+  # Outbound network
+  net_up = cam_status.net_up(LAST_NET)
+  LAST_NET = net_up[1]
+  netupstr = f' {net_up[0]}'
+  netup_surface = font.render(netupstr, True, (153, 51, 255))
+  screen.blit(transmit_icon, (0, 214))
+  screen.blit(netup_surface, (33, 210))
 
   # Camera icon
   if (cam_status.camera_active()):
@@ -195,7 +207,8 @@ ram_icon = pygame.image.load('ram.png')
 cpu_temp_icon = pygame.image.load('cpu_temp.png')
 case_temp_icon = pygame.image.load('thermometer.png')
 humidity_icon = pygame.image.load('humidity.png')
-wifi_icon = pygame.image.load('wifi.png')
+#wifi_icon = pygame.image.load('wifi.png')
+transmit_icon = pygame.image.load('transmit.png')
 camera_icon = pygame.image.load('camera.png')
 disabled_camera_icon = pygame.image.load('camera_disabled.png')
 sd_icon = pygame.image.load('sd.png')
