@@ -1,0 +1,3 @@
+#!/bin/bash
+ssh pi@weathercam.local ls /home/pi/capture
+
