@@ -1,0 +1,21 @@
+#!/bin/bash
+
+TODAY=$(date +"%Y%m%d")
+
+dir_list=`ssh pi@weathercam.local ls /home/pi/capture |grep -v ${TODAY}`
+IFS=$'\n' read -rd '' -a dirs <<< "$dir_list"
+
+for i in "${!dirs[@]}";
+do
+    printf "%d) %s\n" "$((i+1))" "${dirs[$i]}"
+done
+
+read -p "Select dir: " selection
+
+if [[ "$selection" -gt 0 && "$selection" -le "${#dirs[@]}" ]]; then
+    chosen_dir="${dirs[$((selection-1))]}"
+    ssh pi@weathercam.local rm -r /home/pi/capture/${chosen_dir}
+else
+    echo "Invalid selection."
+    exit 1
+fi
