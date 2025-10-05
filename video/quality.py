@@ -41,6 +41,6 @@ pool = Pool()
 qualities = list(tqdm.tqdm(pool.imap(get_quality, images), total=len(images)))
 pool.close()
 
-counts, bins = np.histogram(qualities)
+counts, bins = np.histogram(qualities, bins=100)
 plt.stairs(counts, bins)
 plt.show()
