@@ -1,3 +1,4 @@
 #!/bin/bash
 ssh pi@weathercam.local ls /home/pi/capture
-
+echo ' '
+ssh pi@weathercam.local df -h / | awk 'NR==2 {print $4}'\

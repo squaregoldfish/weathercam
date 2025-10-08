@@ -1,5 +1,8 @@
 #!/bin/bash
 
+ssh pi@weathercam.local df -h / | awk 'NR==2 {print $4}'
+echo ' '
+
 TODAY=$(date +"%Y%m%d")
 
 dir_list=`ssh pi@weathercam.local ls /home/pi/capture |grep -v ${TODAY}`
@@ -19,3 +22,6 @@ else
     echo "Invalid selection."
     exit 1
 fi
+
+echo ' '
+ssh pi@weathercam.local df -h / | awk 'NR==2 {print $4}'
