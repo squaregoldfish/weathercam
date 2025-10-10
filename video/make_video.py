@@ -36,7 +36,7 @@ def main(conf, image_dir):
         ff = FFmpeg(
             global_options='-y',
             inputs={f'{os.path.join(tmp_dir, "%5d.jpg")}': None},
-            outputs={f'{os.path.basename(image_dir)}.mp4': '-c:v libx264 -profile:v high -pix_fmt yuv420p -g 25 -r 25'}
+            outputs={f'{os.path.basename(image_dir)}.mp4': '-c:v libx264 -profile:v high -g 25 -r 25'}
         )
 
         ff.run()
