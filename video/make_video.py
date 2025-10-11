@@ -12,6 +12,7 @@ from PIL import ImageDraw
 from PIL import ImageFont
 from ffmpy import FFmpeg
 
+import re
 
 def main(conf, image_dir):
     """
@@ -33,6 +34,38 @@ def main(conf, image_dir):
         pool.starmap(process_image, zip(repeat(conf), repeat(image_dir), repeat(tmp_dir), image_list, image_indices))
         pool.close()
 
+        # Deal with missing frames
+        pattern = re.compile(r'^(\d+)\.jpg$')
+
+        # Collect matching files and extract numeric part
+        files = []
+        for filename in os.listdir(tmp_dir):
+            match = pattern.match(filename)
+            if match:
+                number_str = match.group(1)
+                files.append((int(number_str), filename))
+        
+        files.sort()
+
+        pad_width = len(pattern.match(files[0][1]).group(1))
+
+        for i, (_, original_name) in enumerate(files):
+            temp_name = f"temp_{i:0{pad_width}}.jpg"
+            os.rename(
+                os.path.join(tmp_dir, original_name),
+                os.path.join(tmp_dir, temp_name)
+            )
+
+        # Second pass: rename to final sequential filenames
+        for i in range(len(files)):
+            temp_name = f"temp_{i:0{pad_width}}.jpg"
+            final_name = f"{i:0{pad_width}}.jpg"
+            os.rename(
+                os.path.join(tmp_dir, temp_name),
+                os.path.join(tmp_dir, final_name)
+            )
+
+        # Generate the video
         ff = FFmpeg(
             global_options='-y',
             inputs={f'{os.path.join(tmp_dir, "%5d.jpg")}': None},
@@ -64,7 +97,7 @@ def process_image(conf, in_dir, out_dir, file, index):
 
         img.save(os.path.join(out_dir, f'{index:05d}.jpg'))
     except Exception as e:
-        print(e)
+        print(f'{file}: {e}')
 
 
 @contextlib.contextmanager
