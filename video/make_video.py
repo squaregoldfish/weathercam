@@ -67,7 +67,7 @@ def main(conf, image_dir):
 
         # Generate the video
         ff = FFmpeg(
-            global_options='-y',
+            global_options='-y -v quiet -stats',
             inputs={f'{os.path.join(tmp_dir, "%5d.jpg")}': None},
             outputs={f'{os.path.basename(image_dir)}.mp4': '-c:v libx264 -profile:v high -g 25 -r 25'}
         )
