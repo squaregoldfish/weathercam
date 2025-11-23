@@ -16,9 +16,10 @@ done
 read -p "Select dir: " selection
 
 if [[ "$selection" -gt 0 && "$selection" -le "${#dirs[@]}" ]]; then
-    rsync -r --info=progress2 pi@weathercam.local:/home/pi/capture/$selection .
+    chosen_dir="${dirs[$((selection-1))]}"
+    rsync -r --info=progress2 pi@weathercam.local:/home/pi/capture/$chosen_dir .
     source .venv/bin/activate
-    python make_video.py -timestamp $selection
-    cp $1/*120000.jpg middays/
+    python make_video.py -timestamp $chosen_dir
+    cp ${chosen_dir}/*120000.jpg middays/
 fi
 
