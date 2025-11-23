@@ -135,7 +135,6 @@ dmypy.json
 
 video/*mp4
 video/**/*jpg
-video/make_video
 
 .idea
 **/.vscode

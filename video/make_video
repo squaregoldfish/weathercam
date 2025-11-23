@@ -1,0 +1,24 @@
+#!/bin/bash
+
+ssh pi@weathercam.local df -h / | awk 'NR==2 {print $4}'
+echo ' '
+
+TODAY=$(date +"%Y%m%d")
+
+dir_list=`ssh pi@weathercam.local ls /home/pi/capture |grep -v ${TODAY}`
+IFS=$'\n' read -rd '' -a dirs <<< "$dir_list"
+
+for i in "${!dirs[@]}";
+do
+    printf "%d) %s\n" "$((i+1))" "${dirs[$i]}"
+done
+
+read -p "Select dir: " selection
+
+if [[ "$selection" -gt 0 && "$selection" -le "${#dirs[@]}" ]]; then
+    rsync -r --info=progress2 pi@weathercam.local:/home/pi/capture/$selection .
+    source .venv/bin/activate
+    python make_video.py -timestamp $selection
+    cp $1/*120000.jpg middays/
+fi
+
