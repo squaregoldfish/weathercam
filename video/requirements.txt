@@ -11,4 +11,4 @@ platformdirs==4.4.0
 setuptools==80.9.0
 toml==0.10.2
 tqdm==4.67.1
-virtualenv==20.34.0
+virtualenv==20.36.1
