@@ -13,6 +13,10 @@ if [[ -n "$NEWEST_FILE" ]]; then
 
     # Check if the file is older than 20 minutes (1200 seconds)
     if [[ "$FILE_AGE" -gt $AGE_LIMIT ]]; then
-        reboot
+        echo "$(date)  Last file too old. Rebooting." >> stall_check.log
+        /sbin/reboot
     fi
+else
+    /sbin/reboot
 fi
+
